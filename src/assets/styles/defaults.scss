@@ -1,0 +1,86 @@
+* {
+  box-sizing: border-box;
+}
+
+*::-webkit-scrollbar {
+  width: 6px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: var(--primary-color);
+  transition: all 50ms;
+  border-radius: 20px;
+  cursor: pointer;
+
+  &:hover {
+    background-color: var(--primary-muted-color);
+  }
+}
+
+body {
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell,
+    "Open Sans", "Helvetica Neue", sans-serif;
+  background-color: var(--background-color);
+  color: var(--text-color);
+  margin: 0;
+}
+
+@mixin disableDefaultButton {
+  border: none;
+  color: var(--text-color);
+  background-color: var(--button-color);
+  border-radius: var(--radius-md);
+}
+
+p {
+  margin: 2px 0 0 2px;
+}
+
+.loading-default {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  background-color: rgba($color: #000000, $alpha: 0.5);
+  border-radius: var(--radius-md);
+  font-size: 2.1rem;
+  user-select: none;
+
+  & > * {
+    color: white;
+  }
+}
+
+.message-content {
+  * {
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+}
+
+.mention-placeholder {
+  padding: 0 2px;
+  background-color: rgba($color: #488eff, $alpha: 0.2);
+  border-radius: var(--radius-sm);
+}
+.role-mention-placeholder {
+  padding: 0 2px;
+  background-color: rgba($color: #48e7ff, $alpha: 0.2);
+  border-radius: var(--radius-sm);
+}
+.spoiler-placeholder {
+  padding: 0 2px;
+  background-color: rgba($color: #364256, $alpha: 0.2);
+  border-radius: var(--radius-sm);
+}
+
+.emoji-groups .emoji-wrapper .emoji {
+  width: 1em;
+  height: 1em;
+}

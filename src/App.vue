@@ -1,0 +1,158 @@
+<template>
+  <div class="app-wrapper">
+    <div class="app-sub-wrapper">
+      <div class="notification-wrapper">
+        <NotificationWrapper />
+      </div>
+      <div class="main-content-wrapper">
+        <div class="side-navigation-wrapper" v-if="apx.layout.showChannels || apx.layout.showServers">
+          <BaseNavigation></BaseNavigation>
+        </div>
+        <div class="contents-wrapper">
+          <RouterView />
+        </div>
+        <div class="members-wrapper" v-if="apx.layout.showMembers">
+          <MemberNavigation />
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import { invoke } from "@tauri-apps/api/core";
+import { listen } from "@tauri-apps/api/event";
+import { RouterView } from "vue-router";
+import { useAppStore } from "./stores/app";
+import { getGuilds } from "./core/discord/api";
+import BaseNavigation from "./components/nav/BaseNavigation.vue";
+import MemberNavigation from "./components/nav/MemberNavigation.vue";
+import NotificationWrapper from "./components/NotificationWrapper.vue";
+
+export default {
+  name: "App",
+  components: { RouterView, BaseNavigation, MemberNavigation, NotificationWrapper },
+  data() {
+    return {
+      apx: useAppStore(),
+      listeners: {
+        discordStatus: null,
+        discordUserInfo: null,
+        discordOnMessage: null,
+        discordOnMessageReactionAdd: null,
+        discordOnMessageReactionRemove: null,
+        discordOnMessageUpdate: null,
+        discordOnMessageDelete: null,
+        discordOnPresenceUpdate: null,
+      },
+    };
+  },
+  mounted() {
+    this.loaded();
+  },
+  beforeUnmount() {
+    this.listeners.discordStatus();
+    this.listeners.discordUserInfo();
+    this.listeners.discordOnMessage();
+    this.listeners.discordOnMessageReactionAdd();
+    this.listeners.discordOnMessageUpdate();
+    this.listeners.discordOnMessageDelete();
+    this.listeners.discordOnPresenceUpdate();
+  },
+  methods: {
+    async loaded() {
+      invoke("app_load");
+
+      this.listeners.discordStatus = await listen("discord-status", async (ev) => {
+        try {
+          useAppStore().logging = false;
+          if (ev.payload.autoLog) {
+            useAppStore().logging = true;
+          }
+          useAppStore().isLoggedIn = ev.payload.loggedIn;
+          if (useAppStore().isLoggedIn && !useAppStore().buffer.loadingGuilds) {
+            await getGuilds();
+            this.apx.layout.showChannels = this.apx.isLoggedIn;
+            this.apx.layout.showServers = this.apx.isLoggedIn;
+            this.apx.layout.showMembers = this.apx.isLoggedIn;
+          }
+          console.log("[listen | discord-status]", ev);
+        } catch (err) {
+          console.error("[listen | discord-status]", err);
+        }
+      });
+
+      this.listeners.discordUserInfo = await listen("user-info", (ev) => {
+        try {
+          useAppStore().user = JSON.parse(ev.payload);
+          console.log("[listen | user-info]", ev);
+        } catch (err) {
+          console.error("[listen | user-info]", err);
+        }
+      });
+
+      this.listeners.discordOnMessage = await listen("discord-message", (ev) => {
+        console.debug("[listen | discord-message]", ev);
+        if (ev.payload.channel_id === useAppStore().data.currentChannelId) {
+          useAppStore().data.messages.push(ev.payload);
+        } else {
+          useAppStore().data.unreadChannels.push(ev.payload.channel_id);
+        }
+        useAppStore().cache.cachedChannels[ev.payload.channel_id].push(ev.payload);
+      });
+
+      this.listeners.discordOnMessageReactionAdd = await listen("discord-reaction-add", (ev) => {
+        console.debug("[listen | discord-reaction-add]", ev);
+        if (ev.payload.channel_id === useAppStore().data.currentChannelId) {
+          const messageId = ev.payload.message_id;
+          const messages = useAppStore().data.messages;
+          const index = messages.findIndex((message) => message.id === messageId);
+
+          if (index !== -1) {
+            messages[index].reactions.push(ev.payload);
+          }
+        }
+      });
+
+      this.listeners.discordOnMessageUpdate = await listen("discord-message-update", (ev) => {
+        console.debug("[listen | discord-message-update]", ev);
+        if (ev.payload.event.channel_id === useAppStore().data.currentChannelId) {
+          const messageId = ev.payload.event.id;
+          const messages = useAppStore().data.messages;
+          const index = messages.findIndex((message) => message.id === messageId);
+
+          if (index !== -1) {
+            messages[index].content = ev.payload.event.content;
+            messages[index].embeds = ev.payload.event.embeds;
+            messages[index].components = ev.payload.event.components;
+            messages[index].edited_timestamp = ev.payload.event.edited_timestamp;
+          }
+        }
+      });
+
+      this.listeners.discordOnMessageDelete = await listen("discord-message-delete", (ev) => {
+        console.debug("[listen | discord-message-delete]", ev);
+        const messageId = ev.payload["message-id"];
+        const index = useAppStore().data.messages.findIndex((message) => message.id === messageId);
+
+        if (index !== -1) {
+          useAppStore().data.messages[index].deleted = true;
+          console.debug("Deleting message", index);
+        }
+      });
+
+      this.listeners.discordOnPresenceUpdate = await listen("discord-presence-update", (ev) => {
+        console.debug("[listen | discord-presence-update]", ev);
+        const userId = ev.payload.user.id;
+        const index = useAppStore().data.members.findIndex((user) => user.user.id == userId);
+
+        if (index !== -1) {
+          useAppStore().data.members[index].status = ev.payload.status;
+          useAppStore().data.members[index].activities = ev.payload.activities;
+          console.debug("Updated members presence", index);
+        }
+      });
+    },
+  },
+};
+</script>
