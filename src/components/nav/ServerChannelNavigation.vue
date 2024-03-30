@@ -2,7 +2,10 @@
 .channels-navigation-wrapper {
   position: relative;
   height: 100%;
-  width: calc(var(--_fullNavWidth) - var(--_leftNavWidth) - var(--gap-md) - 2 * var(--gap-sm));
+  width: calc(
+    var(--_fullNavWidth) - var(--_leftNavWidth) - var(--gap-md) - 2 *
+      var(--gap-sm)
+  );
   display: flex;
   flex-flow: column nowrap;
   gap: var(--gap-sm);
@@ -95,6 +98,7 @@ header {
 
 .loading-default {
   font-size: 2.1rem;
+  z-index: 365;
 }
 </style>
 
@@ -103,7 +107,10 @@ header {
     <div class="loading-default" v-if="apx.buffer.loadingChannels">
       <LoadingIcon :animated="true" />
     </div>
-    <header v-if="apx.data.currentServer" @click="$router.push(`/server/${apx.data.currentServerId}`)">
+    <header
+      v-if="apx.data.currentServer"
+      @click="$router.push(`/server/${apx.data.currentServerId}`)"
+    >
       <h1>{{ apx.data.currentServer.name }}</h1>
     </header>
     <div class="server-info" v-if="apx.data.currentServer">
@@ -133,7 +140,8 @@ header {
       v-for="channel in sortedChannels"
     >
       <span v-if="channel.type === 4"
-        ><ArrowIcon :class="{ 'closed-category': hiddenCategories.includes(channel.id) }"
+        ><ArrowIcon
+          :class="{ 'closed-category': hiddenCategories.includes(channel.id) }"
       /></span>
       {{ channel.name }}
     </div>
@@ -161,7 +169,9 @@ export default {
       console.log("Loading channel", channel.type, channel.id);
       switch (channel.type) {
         case 4: {
-          const existingHiddenCategoryIndex = this.hiddenCategories.findIndex((el) => el == channel.id);
+          const existingHiddenCategoryIndex = this.hiddenCategories.findIndex(
+            (el) => el === channel.id
+          );
           if (existingHiddenCategoryIndex !== -1) {
             this.hiddenCategories.splice(existingHiddenCategoryIndex, 1);
           } else {
@@ -173,7 +183,9 @@ export default {
           if (this.apx.buffer.loadingChannels) return;
           this.apx.data.currentChannel = channel;
           this.apx.data.currentChannelId = channel.id;
-          this.$router.push(`/forum/${this.apx.data.currentServerId}/${channel.id}`);
+          this.$router.push(
+            `/forum/${this.apx.data.currentServerId}/${channel.id}`
+          );
           getForums(channel.id);
           break;
         }
@@ -181,8 +193,11 @@ export default {
           if (this.apx.buffer.loadingMessages) return;
           this.apx.data.currentChannel = channel;
           this.apx.data.currentChannelId = channel.id;
-          this.apx.data.messages = this.apx.cache.cachedMessages[channel.id] || [];
-          this.$router.push(`/server/${this.apx.data.currentServerId}/${channel.id}`);
+          this.apx.data.messages =
+            this.apx.cache.cachedMessages[channel.id] || [];
+          this.$router.push(
+            `/server/${this.apx.data.currentServerId}/${channel.id}`
+          );
           getMessages(channel.id);
           break;
         }

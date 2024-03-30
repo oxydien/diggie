@@ -233,6 +233,16 @@
         background-color: var(--primary-muted-color);
         color: var(--text-highlight-color);
       }
+      &:disabled {
+        background-color: var(--button-color) !important;
+        filter: brightness(70%);
+        cursor: not-allowed;
+      }
+    }
+  }
+  .json-editor {
+    textarea {
+      margin-top: var(--gap-md);
     }
   }
   .navigation {
@@ -263,36 +273,79 @@
             <div
               class="embed-editable"
               v-for="(embed, index) in messageData.embeds"
-              :style="`border-left: 5px solid #${embed.color || embed.color === 0 ? embed.color.toString(16) : ''}`"
+              :style="`border-left: 5px solid #${
+                embed.color || embed.color === 0 ? embed.color.toString(16) : ''
+              }`"
             >
               <div class="embed-about">
-                <div class="toggle-embed" @click="layout.embeds[index].show = !layout.embeds[index].show">
-                  <ArrowIcon :style="layout.embeds[index].show ? '' : 'transform: rotate(-90deg)'" />
+                <div
+                  class="toggle-embed"
+                  @click="
+                    layout.embeds[index].show = !layout.embeds[index].show
+                  "
+                >
+                  <ArrowIcon
+                    :style="
+                      layout.embeds[index].show
+                        ? ''
+                        : 'transform: rotate(-90deg)'
+                    "
+                  />
                   <h4>Embed {{ index + 1 }}</h4>
                 </div>
                 <button @click="removeEmbed(index)"><DeleteIcon /></button>
-                <button @click="moveUp(index)"><ArrowIcon /></button>
-                <button @click="moveDown(index)"><ArrowIcon style="transform: rotate(180deg)" /></button>
+                <button @click="moveUp(index)" :disabled="index === 0">
+                  <ArrowIcon style="transform: rotate(180deg)" />
+                </button>
+                <button
+                  @click="moveDown(index)"
+                  :disabled="index === messageData.embeds.length - 1"
+                >
+                  <ArrowIcon />
+                </button>
               </div>
               <div class="embed-content" v-show="layout.embeds[index].show">
                 <div
                   class="author-anchor embed-anchor"
-                  @click="layout.embeds[index].author = !layout.embeds[index].author"
+                  @click="
+                    layout.embeds[index].author = !layout.embeds[index].author
+                  "
                 >
-                  <ArrowIcon :style="layout.embeds[index].author ? '' : 'transform: rotate(-90deg)'" />
+                  <ArrowIcon
+                    :style="
+                      layout.embeds[index].author
+                        ? ''
+                        : 'transform: rotate(-90deg)'
+                    "
+                  />
                   <span>Author</span>
                 </div>
-                <div class="editable-author" v-show="layout.embeds[index].author">
+                <div
+                  class="editable-author"
+                  v-show="layout.embeds[index].author"
+                >
                   <div class="author-name">
                     <label :for="`author_name_${index}`">Author</label>
-                    <input autocomplete="off" type="text" :id="`author_name_${index}`" v-model="embed.author.name" />
+                    <input
+                      autocomplete="off"
+                      type="text"
+                      :id="`author_name_${index}`"
+                      v-model="embed.author.name"
+                    />
                   </div>
                   <div class="author-url">
                     <label :for="`author_url_${index}`">Author URL</label>
-                    <input autocomplete="off" type="text" :id="`author_url_${index}`" v-model="embed.author.url" />
+                    <input
+                      autocomplete="off"
+                      type="text"
+                      :id="`author_url_${index}`"
+                      v-model="embed.author.url"
+                    />
                   </div>
                   <div class="author-icon-url">
-                    <label :for="`author_icon_url_${index}`">Author icon URL</label>
+                    <label :for="`author_icon_url_${index}`"
+                      >Author icon URL</label
+                    >
                     <input
                       autocomplete="off"
                       type="text"
@@ -301,14 +354,30 @@
                     />
                   </div>
                 </div>
-                <div class="body-anchor embed-anchor" @click="layout.embeds[index].data = !layout.embeds[index].data">
-                  <ArrowIcon :style="layout.embeds[index].data ? '' : 'transform: rotate(-90deg)'" />
+                <div
+                  class="body-anchor embed-anchor"
+                  @click="
+                    layout.embeds[index].data = !layout.embeds[index].data
+                  "
+                >
+                  <ArrowIcon
+                    :style="
+                      layout.embeds[index].data
+                        ? ''
+                        : 'transform: rotate(-90deg)'
+                    "
+                  />
                   <span>Body</span>
                 </div>
                 <div class="editable-body" v-show="layout.embeds[index].data">
                   <div class="body-title">
                     <label :for="`title_${index}`">Title</label>
-                    <input autocomplete="off" type="text" :id="`title_${index}`" v-model="embed.title" />
+                    <input
+                      autocomplete="off"
+                      type="text"
+                      :id="`title_${index}`"
+                      v-model="embed.title"
+                    />
                   </div>
                   <div class="body-description">
                     <label :for="`description_${index}`">Description</label>
@@ -322,7 +391,12 @@
                   <div class="body-design">
                     <div class="body-url">
                       <label :for="`url_${index}`">URL</label>
-                      <input autocomplete="off" type="text" :id="`url_${index}`" v-model="embed.url" />
+                      <input
+                        autocomplete="off"
+                        type="text"
+                        :id="`url_${index}`"
+                        v-model="embed.url"
+                      />
                     </div>
                     <div class="body-color">
                       <label :for="`color_${index}`">Color</label>
@@ -330,7 +404,9 @@
                         autocomplete="off"
                         type="color"
                         :style="`background-color: #${
-                          embed.color || embed.color === 0 ? embed.color.toString(16) : ''
+                          embed.color || embed.color === 0
+                            ? embed.color.toString(16)
+                            : ''
                         }`"
                         :id="`color_${index}`"
                         :value="embed.color"
@@ -348,35 +424,76 @@
                 </div>
                 <div
                   class="image-anchor embed-anchor"
-                  @click="layout.embeds[index].images = !layout.embeds[index].images"
+                  @click="
+                    layout.embeds[index].images = !layout.embeds[index].images
+                  "
                 >
-                  <ArrowIcon :style="layout.embeds[index].images ? '' : 'transform: rotate(-90deg)'" />
+                  <ArrowIcon
+                    :style="
+                      layout.embeds[index].images
+                        ? ''
+                        : 'transform: rotate(-90deg)'
+                    "
+                  />
                   <span>Images</span>
                 </div>
-                <div class="editable-images" v-show="layout.embeds[index].images">
+                <div
+                  class="editable-images"
+                  v-show="layout.embeds[index].images"
+                >
                   <div class="images-image">
                     <label :for="`image_${index}`">Image URL</label>
-                    <input autocomplete="off" type="text" :id="`image_${index}`" v-model="embed.image.url" />
+                    <input
+                      autocomplete="off"
+                      type="text"
+                      :id="`image_${index}`"
+                      v-model="embed.image.url"
+                    />
                   </div>
                   <div class="images-thumbnail">
-                    <label :for="`thumbnail_${index}`">Thumnail image URL</label>
-                    <input autocomplete="off" type="text" :id="`thumbnail_${index}`" v-model="embed.thumbnail.url" />
+                    <label :for="`thumbnail_${index}`"
+                      >Thumnail image URL</label
+                    >
+                    <input
+                      autocomplete="off"
+                      type="text"
+                      :id="`thumbnail_${index}`"
+                      v-model="embed.thumbnail.url"
+                    />
                   </div>
                 </div>
                 <div
                   class="footer-anchor embed-anchor"
-                  @click="layout.embeds[index].footer = !layout.embeds[index].footer"
+                  @click="
+                    layout.embeds[index].footer = !layout.embeds[index].footer
+                  "
                 >
-                  <ArrowIcon :style="layout.embeds[index].footer ? '' : 'transform: rotate(-90deg)'" />
+                  <ArrowIcon
+                    :style="
+                      layout.embeds[index].footer
+                        ? ''
+                        : 'transform: rotate(-90deg)'
+                    "
+                  />
                   <span>Footer</span>
                 </div>
-                <div class="editable-footer" v-show="layout.embeds[index].footer">
+                <div
+                  class="editable-footer"
+                  v-show="layout.embeds[index].footer"
+                >
                   <div class="footer-text">
                     <label :for="`footer_text_${index}`">Footer text</label>
-                    <input autocomplete="off" type="text" :id="`footer_text_${index}`" v-model="embed.footer.text" />
+                    <input
+                      autocomplete="off"
+                      type="text"
+                      :id="`footer_text_${index}`"
+                      v-model="embed.footer.text"
+                    />
                   </div>
                   <div class="footer-icon-url">
-                    <label :for="`footer_icon_url_${index}`">Footer icon URL</label>
+                    <label :for="`footer_icon_url_${index}`"
+                      >Footer icon URL</label
+                    >
                     <input
                       autocomplete="off"
                       type="text"
@@ -392,38 +509,70 @@
                       :id="`footer_timestamp_${index}`"
                       @change="updateDate(index, $event.target.value)"
                     />
-                    <button @click="embed.timestamp = ''"><DeleteIcon /></button>
+                    <button @click="embed.timestamp = ''">
+                      <DeleteIcon />
+                    </button>
                   </div>
                 </div>
                 <div
                   class="fields-anchor embed-anchor"
-                  @click="layout.embeds[index].fields = !layout.embeds[index].fields"
+                  @click="
+                    layout.embeds[index].fields = !layout.embeds[index].fields
+                  "
                 >
-                  <ArrowIcon :style="layout.embeds[index].fields ? '' : 'transform: rotate(-90deg)'" />
+                  <ArrowIcon
+                    :style="
+                      layout.embeds[index].fields
+                        ? ''
+                        : 'transform: rotate(-90deg)'
+                    "
+                  />
                   <span>Fields</span>
                 </div>
-                <div class="editable-fields" v-show="layout.embeds[index].fields">
-                  <div class="editable-field" v-for="(field, f_index) in embed.fields">
+                <div
+                  class="editable-fields"
+                  v-show="layout.embeds[index].fields"
+                >
+                  <div
+                    class="editable-field"
+                    v-for="(field, f_index) in embed.fields"
+                  >
                     <div
                       class="embed-anchor field-anchor"
-                      @click="layout.embeds[index].field[f_index] = !layout.embeds[index].field[f_index]"
+                      @click="
+                        layout.embeds[index].field[f_index] =
+                          !layout.embeds[index].field[f_index]
+                      "
                     >
                       <span class="toggle-field"
                         ><ArrowIcon
-                          :style="layout.embeds[index].field[f_index] ? '' : 'transform: rotate(-90deg)'"
+                          :style="
+                            layout.embeds[index].field[f_index]
+                              ? ''
+                              : 'transform: rotate(-90deg)'
+                          "
                         />Field {{ f_index + 1 }}</span
                       >
-                      <button @click="removeField(index, f_index)"><DeleteIcon /></button>
+                      <button @click="removeField(index, f_index)">
+                        <DeleteIcon />
+                      </button>
                     </div>
-                    <div class="field-content" v-show="layout.embeds[index].field[f_index]">
-                      <label :for="`field_name_${index}_${f_index}`">Field name</label>
+                    <div
+                      class="field-content"
+                      v-show="layout.embeds[index].field[f_index]"
+                    >
+                      <label :for="`field_name_${index}_${f_index}`"
+                        >Field name</label
+                      >
                       <input
                         autocomplete="off"
                         type="text"
                         :id="`field_name_${index}_${f_index}`"
                         v-model="field.name"
                       />
-                      <label :for="`field_value_${index}_${f_index}`">Field value</label>
+                      <label :for="`field_value_${index}_${f_index}`"
+                        >Field value</label
+                      >
                       <input
                         autocomplete="off"
                         type="text"
@@ -440,14 +589,22 @@
           <div class="navigation">
             <button @click="addNewEmbed">Add Embed</button>
             <button>Add Component</button>
-            <button @click="layout.showJsonEditor = !layout.showJsonEditor">Json Editor</button>
+            <button @click="layout.showJsonEditor = !layout.showJsonEditor">
+              Json Editor
+            </button>
           </div>
           <div class="json-editor" v-if="layout.showJsonEditor">
-            <textarea style="min-height: 300px" @input="updateJsonData">{{ jsonData }}</textarea>
+            <textarea style="min-height: 300px" @input="updateJsonData">{{
+              jsonData
+            }}</textarea>
           </div>
         </div>
         <div class="preview-wrapper">
-          <Message v-if="this.messageData.id" :message="messageData" :ignoreContextMenu="true" />
+          <Message
+            v-if="this.messageData.id"
+            :message="messageData"
+            :ignoreContextMenu="true"
+          />
         </div>
       </div>
     </div>
@@ -511,10 +668,14 @@ export default {
   methods: {
     addEmbedsToMessage() {
       this.apx.data.textInput.message.embeds = this.messageData.embeds;
-      this.$router.push(`/server/${this.apx.data.currentServerId}/${this.apx.data.currentChannelId}`);
+      this.$router.push(
+        `/server/${this.apx.data.currentServerId}/${this.apx.data.currentChannelId}`
+      );
     },
     handleCancel() {
-      this.$router.push(`/server/${this.apx.data.currentServerId}/${this.apx.data.currentChannelId}`);
+      this.$router.push(
+        `/server/${this.apx.data.currentServerId}/${this.apx.data.currentChannelId}`
+      );
     },
     addNewEmbed() {
       this.messageData.embeds.push({
@@ -591,10 +752,10 @@ export default {
     },
     hexToDecimal(hex) {
       if (typeof hex === "string" && hex.startsWith("#")) {
-        return parseInt(hex.substring(1), 16);
+        return Number.parseInt(hex.substring(1), 16);
       }
       if (typeof hex === "string") {
-        return parseInt(hex, 16);
+        return Number.parseInt(hex, 16);
       }
       return 0;
     },

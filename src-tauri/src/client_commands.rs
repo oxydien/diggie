@@ -90,10 +90,14 @@ pub async fn get_discord_dirrect_channels() -> Result<String, String> {
 }
 
 #[tauri::command]
-pub async fn discord_get_forum_channels(channel_id: &str) -> Result<String, String> {
+pub async fn discord_get_forum_channels(
+    channel_id: &str,
+    guild_id: &str,
+) -> Result<String, String> {
     let channel: u64 = channel_id.parse().unwrap();
+    let guild: u64 = guild_id.parse().unwrap();
 
-    match get_forum_channels(channel).await {
+    match get_forum_channels(guild, channel).await {
         Ok(data) => Ok(serde_json::to_string(&data).unwrap()),
         Err(err) => Err(err),
     }
