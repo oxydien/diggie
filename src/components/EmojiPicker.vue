@@ -81,7 +81,12 @@
 <template>
   <div class="emoji-picker">
     <div class="filter-bar">
-      <input type="text" id="emojiPickerInputBox" v-model="searchQuery" placeholder="Search emojis..." />
+      <input
+        type="text"
+        id="emojiPickerInputBox"
+        v-model="searchQuery"
+        placeholder="Search emojis..."
+      />
     </div>
     <div class="emoji-groups">
       <div
@@ -124,11 +129,15 @@ export default {
         if (
           this.searchQuery &&
           Array.isArray(emoji.tags) &&
-          !emoji.tags.some((tag) => tag.toLowerCase().includes(this.searchQuery.toLowerCase())) &&
+          !emoji.tags.some((tag) =>
+            tag.toLowerCase().includes(this.searchQuery.toLowerCase())
+          ) &&
           !emoji.label.toLowerCase().includes(this.searchQuery.toLowerCase())
         )
           continue;
-        const newEmoji = twemoji.parse(emoji.unicode);
+        const newEmoji = twemoji.parse(emoji.unicode, {
+          base: "https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/",
+        });
         const htmlElement = newEmoji.match(/<[^>]+>/g)?.[0] || "";
         emoji.html = htmlElement;
         if (emoji.html) data.push(emoji);

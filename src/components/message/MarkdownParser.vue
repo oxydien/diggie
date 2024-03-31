@@ -5,6 +5,7 @@
 <script>
 import { parse } from "marked";
 import { useAppStore } from "../../stores/app";
+import twemoji from "twemoji";
 
 export default {
   props: {
@@ -25,7 +26,9 @@ export default {
 
       md = md.replaceAll("\n", "\n\n");
       md = md.replace(/&lt;@(\d+)>/g, (match, userId) => {
-        const index = useAppStore().data.members.findIndex((user) => user.user.id === userId);
+        const index = useAppStore().data.members.findIndex(
+          (user) => user.user.id === userId
+        );
         let member = null;
         if (index !== -1) {
           member = useAppStore().data.members[index];
@@ -35,7 +38,9 @@ export default {
         }</mention-placeholder>`;
       });
       md = md.replace(/&lt;@&(\d+)>/g, (match, roleId) => {
-        const index = useAppStore().data.currentServer?.roles?.findIndex((role) => role.id === roleId);
+        const index = useAppStore().data.currentServer?.roles?.findIndex(
+          (role) => role.id === roleId
+        );
         let role = null;
         if (index !== -1) {
           role = useAppStore().data.currentServer.roles[index];
@@ -54,16 +59,20 @@ export default {
         return `<spoiler-placeholder class="spoiler-placeholder">${p2}</spoiler-placeholder>`;
       });
 
-      const data = parse(md)
+      let data = parse(md)
         .trim()
         .replace(/<t:(\d+):[a-zA-Z_]>/g, (match, timestamp) => {
           console.log(match, timestamp);
-          const date = new Date(parseInt(timestamp) * 1000);
+          const date = new Date(Number.parseInt(timestamp) * 1000);
           return date.toLocaleString();
         })
         .replaceAll("\n", "");
 
-      this.$emit("loaded");
+      data = twemoji.parse(data, {
+        base: "https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/",
+      });
+
+      this.$emit("load");
       return data;
     },
   },
