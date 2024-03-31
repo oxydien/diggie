@@ -12,16 +12,22 @@ use crate::client_commands::{
     get_discord_guild_member_info, get_discord_guild_members, get_discord_guilds,
     get_discord_messages, send_raw_discord_message, send_simple_discord_message,
 };
-use crate::discord::login::login;
 use crate::discord::DISCORD_CONTEXT;
-use discord::login::retrieve_token;
+use crate::settings::auth_saver::get_all_athorizations;
 use lazy_static::lazy_static;
 use serde_json::json;
+use serenity::all::ShardManager;
+use serenity::prelude::TypeMapKey;
 use tauri::{AppHandle, Manager};
 use tokio::sync::Mutex;
 
 lazy_static! {
     pub static ref MAIN_APP: Arc<Mutex<Option<AppHandle>>> = Arc::new(Mutex::new(None));
+}
+
+pub struct ShardManagerContainer;
+impl TypeMapKey for ShardManagerContainer {
+    type Value = Arc<ShardManager>;
 }
 
 #[tauri::command]
@@ -39,17 +45,11 @@ async fn app_load(app_handle: AppHandle) -> Result<(), String> {
             Ok(_) => (),
             Err(_) => println!("[lib::app_load()] Could not emit data to windows"),
         }
-    } else if let Ok(val) = retrieve_token().await {
-        drop(context_guard);
-        println!("[lib::app_load()] Auto logging as {}", val);
-        match app_handle.emit(
-            "discord-status",
-            json!({"loggedIn": false, "autoLog": true}),
-        ) {
+    } else if let Ok(auth_data) = get_all_athorizations() {
+        match app_handle.emit("saved-authorizations", &auth_data) {
             Ok(_) => (),
-            Err(_) => println!("[bot::ready()] Could not emit to windows"),
+            Err(_) => println!("[lib::app_load()] Could not emit data to windows"),
         }
-        let _ = login(&val).await;
     }
     Ok(())
 }

@@ -15,8 +15,8 @@ Please also check the known issues section for any potential problems.
 ### Core Features
 
 - [x] Autosave token
-  - [ ] Encrypted
-  - [ ] Multi-account Support
+  - [x] Encrypted (weak)
+  - [x] Multi-account Support
 
 ### Basic Discord Features
 

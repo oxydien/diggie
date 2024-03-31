@@ -75,16 +75,16 @@
 
 .channel-navigation-wrapper {
   width: var(--_fullNavWidth);
-  display: flex;
-  flex-flow: column nowrap;
-  align-items: center;
+  height: 100%;
+  overflow-y: hidden;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
   gap: var(--gap-md);
 
   .channel-navigation {
     flex-grow: 1;
     flex-shrink: 1;
     width: 100%;
-    height: calc(100% - var(--_userInfoHeight));
     background-color: var(--foreground-color);
     border-radius: var(--radius-md);
     padding: var(--gap-sm);
@@ -105,6 +105,7 @@
   <div
     class="nav-wrapper"
     ref="navWrapper"
+    id="MainNavWrapper"
     :class="{
       'nav-servers-open': apx.layout.showServers,
       'nav-channels-open': apx.layout.showChannels,
@@ -112,7 +113,10 @@
   >
     <div class="guild-navigation" v-if="apx.layout.showServers">
       <div class="button-navigation">
-        <button @click="onHomeClicked" :class="{ active: apx.data.currentServerId === 'dms' }">
+        <button
+          @click="onHomeClicked"
+          :class="{ active: apx.data.currentServerId === 'dms' }"
+        >
           <HomeIcon />
         </button>
         <button @click="apx.layout.showChannels = !apx.layout.showChannels">
@@ -123,7 +127,10 @@
     </div>
     <div class="channel-navigation-wrapper" v-if="apx.layout.showChannels">
       <div class="channel-navigation">
-        <ServerChannelNavigation v-if="!apx.layout.isInDirrectMessages" :key="apx.data.channels.length" />
+        <ServerChannelNavigation
+          v-if="!apx.layout.isInDirrectMessages"
+          :key="apx.data.channels.length"
+        />
         <DirectMessagesNavigation v-else />
       </div>
       <div class="user-info-wrapper">

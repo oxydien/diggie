@@ -1,5 +1,5 @@
 use serde_json::json;
-use std::sync::Arc;
+use std::{sync::Arc, time};
 use tauri::Manager;
 use tokio::sync::Mutex;
 
@@ -12,7 +12,10 @@ use serenity::{
     async_trait,
 };
 
-use crate::MAIN_APP;
+use crate::{
+    settings::auth_saver::{set_all_authorizations, Account, SavedAuth},
+    MAIN_APP,
+};
 
 pub mod channels;
 pub mod guilds;
@@ -23,6 +26,7 @@ pub mod reactions;
 
 lazy_static! {
     pub static ref DISCORD_CONTEXT: Arc<Mutex<Option<Context>>> = Arc::new(Mutex::new(None));
+    pub static ref SHOULD_SAVE_NEXT_LOGIN: Arc<Mutex<bool>> = Arc::new(Mutex::new(false));
 }
 
 struct Handler;
@@ -62,7 +66,40 @@ impl EventHandler for Handler {
     async fn ready(&self, ctx: Context, ready: Ready) {
         println!("{} is connected!", ready.user.name);
         let app_guard = MAIN_APP.lock().await;
+
+        // Save and encrypt authorizations
+        let token = ctx.http.token().to_string();
+        if let Ok(mut auths) = crate::settings::auth_saver::get_all_athorizations() {
+            let bot_exists = auths
+                .iter_mut()
+                .find(|auth| auth.account.id == ready.user.id.to_string());
+            if let Some(existing_bot) = bot_exists {
+                existing_bot.last_touched = time::SystemTime::now();
+            } else {
+                let should_save = *SHOULD_SAVE_NEXT_LOGIN.lock().await;
+                if should_save {
+                    auths.push(SavedAuth {
+                        token,
+                        last_touched: time::SystemTime::now(),
+                        account: Account {
+                            id: ready.user.id.to_string(),
+                            username: ready.user.name.clone(),
+                            avatar: ready.user.avatar.map(|hash| hash.to_string()),
+                        },
+                    });
+                    *SHOULD_SAVE_NEXT_LOGIN.lock().await = false;
+                }
+            }
+            if let Err(err) = set_all_authorizations(auths) {
+                eprintln!(
+                    "[discord::mod::ready] Couldn't save authorizations: {}",
+                    err
+                )
+            }
+        }
         *DISCORD_CONTEXT.lock().await = Some(ctx);
+
+        // Send to discord client
         if let Some(app) = &*app_guard {
             match app.emit("discord-status", json!({"loggedIn": true})) {
                 Ok(_) => (),

@@ -11,15 +11,8 @@ use crate::discord::{
 
 #[tauri::command]
 pub async fn discord_login(token: &str, should_save_token: bool) -> Result<(), String> {
-    if should_save_token == true {
-        match crate::discord::login::save_token(token).await {
-            Ok(_) => println!("[client_commands::discord_login] Token saved successfully."),
-            Err(e) => println!(
-                "[client_commands::discord_login] Failed to save token: {}",
-                e
-            ),
-        }
-    }
+    let mut token_saver = crate::discord::SHOULD_SAVE_NEXT_LOGIN.lock().await;
+    *token_saver = should_save_token;
     crate::discord::login::login(token).await.unwrap();
     Ok(())
 }

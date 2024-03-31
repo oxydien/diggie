@@ -1,5 +1,7 @@
 use std::path::PathBuf;
 
+pub mod auth_saver;
+
 pub fn get_app_files_path() -> PathBuf {
     match std::env::var("APPDATA") {
         Ok(appdata) => {
