@@ -72,7 +72,7 @@ export default {
         base: "https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/",
       });
 
-      this.$emit("load");
+      this.$emit("loaded");
       return data;
     },
   },

@@ -1,4 +1,6 @@
-use crate::discord::channels::get_forum_channels;
+use serenity::all::GuildChannel;
+
+use crate::discord::channels::{create_channel, edit_channel, get_forum_channels, EditableChannel};
 use crate::discord::messages::{delete_message, edit_message, reply_to_message};
 use crate::discord::{
     channels::{get_channels, get_dirrect_channels},
@@ -92,6 +94,26 @@ pub async fn discord_get_forum_channels(
 
     match get_forum_channels(guild, channel).await {
         Ok(data) => Ok(serde_json::to_string(&data).unwrap()),
+        Err(err) => Err(err),
+    }
+}
+
+#[tauri::command]
+pub async fn create_discord_channel(guild_id: &str, data: &str) -> Result<GuildChannel, String> {
+    let guild: u64 = guild_id.parse().unwrap();
+    let raw_json: EditableChannel = serde_json::from_str(data).unwrap();
+    match create_channel(guild, raw_json).await {
+        Ok(data) => Ok(data),
+        Err(err) => Err(err),
+    }
+}
+
+#[tauri::command]
+pub async fn edit_discord_channel(channel_id: &str, data: &str) -> Result<GuildChannel, String> {
+    let channel: u64 = channel_id.parse().unwrap();
+    let raw_json: EditableChannel = serde_json::from_str(data).unwrap();
+    match edit_channel(channel, raw_json).await {
+        Ok(data) => Ok(data),
         Err(err) => Err(err),
     }
 }

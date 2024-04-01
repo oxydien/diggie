@@ -18,40 +18,12 @@
   }
 }
 
-.channel {
-  transition: all 120ms;
-  background-color: var(--button-color-muted);
-  border-radius: var(--radius-sm);
-  padding: 2px var(--gap-sm);
-  font-weight: 500;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  cursor: pointer;
-  user-select: none;
-
-  &:hover {
-    background-color: var(--button-color);
-  }
-  &.active {
-    background-color: var(--primary-muted-color);
-  }
-
-  &.guild-category {
-    background-color: initial;
-    padding: 4px 0 0 0;
-  }
-  &.unread {
-    color: var(--text-highlight-color);
-    border-left: 3px solid var(--text-highlight-color);
-  }
-  .closed-category {
-    rotate: -90deg;
-  }
-}
-
 header {
   position: sticky;
   top: 0;
+  display: grid;
+  grid-template-rows: 22px auto;
+  width: 100%;
   background-color: inherit;
   padding-top: var(--gap-sm);
   padding-bottom: var(--gap-sm);
@@ -59,41 +31,67 @@ header {
   cursor: pointer;
   z-index: 60;
 
-  h1 {
-    margin: 0;
-    font-size: 1.2rem;
-    white-space: nowrap;
+  .server-info {
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: space-between;
+    align-items: center;
+    width: calc(
+      var(--_fullNavWidth) - var(--_leftNavWidth) - var(--gap-md) - 2 *
+        var(--gap-sm)
+    );
+    button {
+      display: grid;
+      place-items: center;
+      margin: 0;
+      padding: 0 var(--gap-sm);
+      color: var(--text-color);
+      background-color: transparent;
+      border: none;
+      cursor: pointer;
+    }
+    h1 {
+      width: 100%;
+      margin: 0;
+      font-size: 1.1rem;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+    }
+  }
+  .server-info-menu {
+    display: flex;
+    flex-flow: column nowrap;
+    gap: var(--gap-sm);
+    padding-top: var(--gap-md);
+    button {
+      display: flex;
+      flex-flow: row nowrap;
+      justify-content: space-between;
+      align-items: center;
+      border: none;
+      transition: all 150ms;
+      color: var(--text-color);
+      background-color: var(--button-color);
+      border-radius: var(--radius-sm);
+      padding: var(--gap-sm);
+      font-weight: 600;
+      cursor: pointer;
+
+      &:hover {
+        color: var(--text-highlight-color);
+        background-color: var(--primary-muted-color);
+      }
+    }
   }
 }
 
-.server-info {
+.server-banner {
   position: relative;
   display: flex;
   flex-flow: column nowrap;
   border-bottom: 1px solid var(--text-color);
   padding-bottom: var(--gap-sm);
-
-  .server-edit-navigation {
-    position: absolute;
-    top: var(--gap-sm);
-    right: var(--gap-sm);
-    display: flex;
-    flex-flow: row nowrap;
-    gap: var(--gap-sm);
-
-    button {
-      display: grid;
-      place-items: center;
-      width: 20px;
-      height: 20px;
-      background-color: var(--button-color);
-      color: var(--text-color);
-      border: none;
-      border-radius: var(--radius-sm);
-      padding: unset;
-      cursor: pointer;
-    }
-  }
 }
 
 .loading-default {
@@ -107,44 +105,43 @@ header {
     <div class="loading-default" v-if="apx.buffer.loadingChannels">
       <LoadingIcon :animated="true" />
     </div>
-    <header
-      v-if="apx.data.currentServer"
-      @click="$router.push(`/server/${apx.data.currentServerId}`)"
-    >
-      <h1>{{ apx.data.currentServer.name }}</h1>
-    </header>
-    <div class="server-info" v-if="apx.data.currentServer">
-      <div class="server-edit-navigation">
-        <button id="EditChannels"><EditIcon /></button>
-        <button id="ServerSettings"><SettingsIcon /></button>
+    <header v-if="apx.data.currentServer">
+      <div class="server-info">
+        <h1 @click="$router.push(`/server/${apx.data.currentServerId}`)">
+          {{ apx.data.currentServer.name }}
+        </h1>
+        <button @click="serverInfoMenuOpen = !serverInfoMenuOpen">
+          <ArrowIcon
+            style="transition: all 150ms"
+            :style="serverInfoMenuOpen ? '' : 'transform: rotate(-90deg)'"
+          />
+        </button>
       </div>
+      <div class="server-info-menu" v-if="serverInfoMenuOpen">
+        <button>
+          <span>Server settings</span>
+          <SettingsIcon style="transform: rotate(-90deg)" />
+        </button>
+        <button>
+          <span>Edit channels</span>
+          <EditIcon style="transform: rotate(-90deg)" />
+        </button>
+      </div>
+    </header>
+    <div class="server-banner" v-if="apx.data.currentServer">
       <img v-if="apx.data.currentServer.banner" />
       <img
         v-else-if="apx.data.currentServer.splash"
         :src="`https://cdn.discordapp.com/splashes/${apx.data.currentServer.id}/${apx.data.currentServer.splash}.jpg?size=256`"
       />
     </div>
-    <div
-      class="channel"
-      :class="{
-        'guild-text-channel': channel.type === 0,
-        'guild-voice-channel': channel.type === 2,
-        'guild-category': channel.type === 4,
-        'guild-annoucement': channel.type === 5,
-        'guild-forum': channel.type === 15,
-        active: apx.data.currentChannelId === channel.id,
-        unread: apx.data.unreadChannels.includes(channel.id),
-      }"
-      v-show="!hiddenCategories.includes(channel.parent_id)"
-      @click="handleClick(channel)"
+    <Channel
+      :channel="channel"
+      :hiddenCategories="hiddenCategories"
+      :key="hiddenCategories"
       v-for="channel in sortedChannels"
-    >
-      <span v-if="channel.type === 4"
-        ><ArrowIcon
-          :class="{ 'closed-category': hiddenCategories.includes(channel.id) }"
-      /></span>
-      {{ channel.name }}
-    </div>
+      @clicked="handleClick"
+    />
   </div>
 </template>
 
@@ -155,13 +152,15 @@ import ArrowIcon from "../icons/ArrowIcon.vue";
 import LoadingIcon from "../icons/LoadingIcon.vue";
 import EditIcon from "../icons/EditIcon.vue";
 import SettingsIcon from "../icons/SettingsIcon.vue";
+import Channel from "../channel/Channel.vue";
 
 export default {
-  components: { ArrowIcon, LoadingIcon, EditIcon, SettingsIcon },
+  components: { Channel, ArrowIcon, LoadingIcon, EditIcon, SettingsIcon },
   data() {
     return {
       apx: useAppStore(),
       hiddenCategories: [],
+      serverInfoMenuOpen: false,
     };
   },
   methods: {

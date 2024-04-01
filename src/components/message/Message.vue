@@ -226,7 +226,7 @@ export default {
         !this.message.message_reference &&
         !this.previousMessage.message_reference &&
         this.previousMessage.author.id === this.message.author.id &&
-        new Date(this.message.timestamp).getTime() - new Date(this.previousMessage.timestamp).getTime() < 6000
+        new Date(this.message.timestamp).getTime() - new Date(this.previousMessage.timestamp).getTime() < 34000
       ) {
         return true;
       }

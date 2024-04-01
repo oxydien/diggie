@@ -1,4 +1,7 @@
-use serenity::all::{ChannelId, GuildChannel, GuildId, PrivateChannel, ThreadsData};
+use serde::{Deserialize, Serialize};
+use serenity::all::{
+    ChannelId, ChannelType, GuildChannel, GuildId, PrivateChannel, RoleId, ThreadsData,
+};
 
 use super::DISCORD_CONTEXT;
 
@@ -56,5 +59,51 @@ pub async fn get_forum_channels(guild_id: u64, channel_id: u64) -> Result<Thread
             Ok(data)
         }
         Err(e) => Err(format!("Couldn't get channels {:?}", e)),
+    }
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct EditableChannel {
+    name: String,
+    r#type: ChannelType,
+    position: Option<u16>,
+    topic: Option<String>,
+    nsfw: Option<bool>,
+    rate_limit_per_user: Option<u32>,
+    bitrate: Option<u16>,
+    user_limit: Option<u8>,
+    permission_overwrites: Option<Vec<RoleId>>,
+    parent_id: Option<ChannelId>,
+}
+
+pub async fn create_channel(guild_id: u64, map: EditableChannel) -> Result<GuildChannel, String> {
+    let mut ctx = DISCORD_CONTEXT.lock().await;
+    let guild = GuildId::new(guild_id);
+
+    match ctx
+        .as_mut()
+        .unwrap()
+        .http
+        .create_channel(guild, &map, Some("diggie created channel"))
+        .await
+    {
+        Ok(data) => Ok(data),
+        Err(err) => Err(format!("Couldn't create channel {:?}", err)),
+    }
+}
+
+pub async fn edit_channel(channel_id: u64, map: EditableChannel) -> Result<GuildChannel, String> {
+    let mut ctx = DISCORD_CONTEXT.lock().await;
+    let channel = ChannelId::new(channel_id);
+
+    match ctx
+        .as_mut()
+        .unwrap()
+        .http
+        .edit_channel(channel, &map, Some("diggie edited channel"))
+        .await
+    {
+        Ok(data) => Ok(data),
+        Err(err) => Err(format!("Couldn't edit channel {:?}", err)),
     }
 }

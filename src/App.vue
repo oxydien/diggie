@@ -49,6 +49,9 @@ export default {
         appSavedAuthorizations: null,
         discordStatus: null,
         discordUserInfo: null,
+        discordOnChannelCreate: null,
+        discordOnChannelUpdate: null,
+        discordOnChannelDelete: null,
         discordOnMessage: null,
         discordOnMessageReactionAdd: null,
         discordOnMessageReactionRemove: null,
@@ -65,6 +68,9 @@ export default {
     this.listeners.appSavedAuthorizations();
     this.listeners.discordStatus();
     this.listeners.discordUserInfo();
+    this.listeners.discordOnChannelCreate();
+    this.listeners.discordOnChannelUpdate();
+    this.listeners.discordOnChannelDelete();
     this.listeners.discordOnMessage();
     this.listeners.discordOnMessageReactionAdd();
     this.listeners.discordOnMessageUpdate();
@@ -101,7 +107,11 @@ export default {
             }
             console.log("%cListener discord-status", this.cbd("#f48202"), ev);
           } catch (err) {
-            console.error("%cListener discord-status", this.cbd("#ff5202"), err);
+            console.error(
+              "%cListener discord-status",
+              this.cbd("#ff5202"),
+              err
+            );
           }
         }
       );
@@ -114,6 +124,52 @@ export default {
           console.error("[listen | user-info]", err);
         }
       });
+
+      this.listeners.discordOnChannelCreate = await listen(
+        "discord-channel-create",
+        (ev) => {
+          console.debug(
+            "%cListener discord-channel-create",
+            this.cbd("#7282c2"),
+            ev
+          );
+          useAppStore().data.channels.push(ev.payload);
+        }
+      );
+
+      this.listeners.discordOnChannelUpdate = await listen(
+        "discord-channel-update",
+        (ev) => {
+          console.debug(
+            "%cListener discord-channel-update",
+            this.cbd("#a282c2"),
+            ev
+          );
+          const targetChannel = useAppStore().data.channels.findIndex(
+            (channel) => channel.id === ev.payload.new.id
+          );
+          if (targetChannel !== -1) {
+            useAppStore().data.channels[targetChannel] = ev.payload.new;
+          }
+        }
+      );
+
+      this.listeners.discordOnChannelDelete = await listen(
+        "discord-channel-delete",
+        (ev) => {
+          console.debug(
+            "%cListener discord-channel-delete",
+            this.cbd("#c582c2"),
+            ev
+          );
+          const targetChannel = useAppStore().data.channels.findIndex(
+            (channel) => channel.id === ev.payload.id
+          );
+          if (targetChannel !== -1) {
+            useAppStore().data.channels.splice(targetChannel, 1);
+          }
+        }
+      );
 
       this.listeners.discordOnMessage = await listen(
         "discord-message",

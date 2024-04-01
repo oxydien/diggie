@@ -6,8 +6,8 @@ use tokio::sync::Mutex;
 use lazy_static::lazy_static;
 use serenity::{
     all::{
-        ChannelId, Context, EventHandler, GuildId, Message, MessageId, MessageUpdateEvent,
-        Presence, Reaction, Ready,
+        ChannelId, Context, EventHandler, GuildChannel, GuildId, Message, MessageId,
+        MessageUpdateEvent, Presence, Reaction, Ready,
     },
     async_trait,
 };
@@ -59,6 +59,62 @@ impl EventHandler for Handler {
             match app.emit("discord-reaction-remove", reaction_remove) {
                 Ok(_) => (),
                 Err(_) => println!("[bot::reaction_remove()] Could not emit to windows"),
+            }
+        }
+    }
+    async fn channel_update(&self, _ctx: Context, old: Option<GuildChannel>, new: GuildChannel) {
+        let app_guard = MAIN_APP.lock().await;
+        if let Some(app) = &*app_guard {
+            match app.emit(
+                "discord-channel-update",
+                json!({
+                    "old": serde_json::to_value(old).unwrap_or_default(),
+                    "new": serde_json::to_value(new).unwrap_or_default(),
+                }),
+            ) {
+                Ok(_) => (),
+                Err(_) => println!("[bot::channel_update()] Could not emit to windows"),
+            }
+        }
+    }
+    async fn channel_create(&self, _ctx: Context, channel: GuildChannel) {
+        let app_guard = MAIN_APP.lock().await;
+        if let Some(app) = &*app_guard {
+            match app.emit("discord-channel-create", channel) {
+                Ok(_) => (),
+                Err(_) => println!("[bot::channel_create()] Could not emit to windows"),
+            }
+        }
+    }
+    async fn channel_delete(
+        &self,
+        _ctx: Context,
+        channel: GuildChannel,
+        _messages: Option<Vec<Message>>,
+    ) {
+        let app_guard = MAIN_APP.lock().await;
+        if let Some(app) = &*app_guard {
+            match app.emit("discord-channel-delete", channel) {
+                Ok(_) => (),
+                Err(_) => println!("[bot::channel_delete()] Could not emit to windows"),
+            }
+        }
+    }
+    async fn category_create(&self, _ctx: Context, category: GuildChannel) {
+        let app_guard = MAIN_APP.lock().await;
+        if let Some(app) = &*app_guard {
+            match app.emit("discord-channel-create", category) {
+                Ok(_) => (),
+                Err(_) => println!("[bot::category_create()] Could not emit to windows"),
+            }
+        }
+    }
+    async fn category_delete(&self, _ctx: Context, category: GuildChannel) {
+        let app_guard = MAIN_APP.lock().await;
+        if let Some(app) = &*app_guard {
+            match app.emit("discord-channel-delete", category) {
+                Ok(_) => (),
+                Err(_) => println!("[bot::category_delete()] Could not emit to windows"),
             }
         }
     }
