@@ -125,33 +125,38 @@ impl EventHandler for Handler {
 
         // Save and encrypt authorizations
         let token = ctx.http.token().to_string();
-        if let Ok(mut auths) = crate::settings::auth_saver::get_all_athorizations() {
-            let bot_exists = auths
-                .iter_mut()
-                .find(|auth| auth.account.id == ready.user.id.to_string());
-            if let Some(existing_bot) = bot_exists {
-                existing_bot.last_touched = time::SystemTime::now();
-            } else {
-                let should_save = *SHOULD_SAVE_NEXT_LOGIN.lock().await;
-                if should_save {
-                    auths.push(SavedAuth {
-                        token,
-                        last_touched: time::SystemTime::now(),
-                        account: Account {
-                            id: ready.user.id.to_string(),
-                            username: ready.user.name.clone(),
-                            avatar: ready.user.avatar.map(|hash| hash.to_string()),
-                        },
-                    });
-                    *SHOULD_SAVE_NEXT_LOGIN.lock().await = false;
+        match crate::settings::auth_saver::get_all_athorizations() {
+            Ok(mut auths) => {
+                let bot_exists = auths
+                    .iter_mut()
+                    .find(|auth| auth.account.id == ready.user.id.to_string());
+                if let Some(existing_bot) = bot_exists {
+                    println!("Updating already saved account!");
+                    existing_bot.last_touched = time::SystemTime::now();
+                } else {
+                    let should_save = *SHOULD_SAVE_NEXT_LOGIN.lock().await;
+                    if should_save {
+                        println!("Saving new account!");
+                        auths.push(SavedAuth {
+                            token,
+                            last_touched: time::SystemTime::now(),
+                            account: Account {
+                                id: ready.user.id.to_string(),
+                                username: ready.user.name.clone(),
+                                avatar: ready.user.avatar.map(|hash| hash.to_string()),
+                            },
+                        });
+                        *SHOULD_SAVE_NEXT_LOGIN.lock().await = false;
+                    }
+                }
+                if let Err(err) = set_all_authorizations(auths) {
+                    eprintln!(
+                        "[discord::mod::ready] Couldn't save authorizations: {}",
+                        err
+                    )
                 }
             }
-            if let Err(err) = set_all_authorizations(auths) {
-                eprintln!(
-                    "[discord::mod::ready] Couldn't save authorizations: {}",
-                    err
-                )
-            }
+            Err(err) => eprintln!("{}", err),
         }
         *DISCORD_CONTEXT.lock().await = Some(ctx);
 

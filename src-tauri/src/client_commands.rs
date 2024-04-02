@@ -15,6 +15,7 @@ use crate::discord::{
 pub async fn discord_login(token: &str, should_save_token: bool) -> Result<(), String> {
     let mut token_saver = crate::discord::SHOULD_SAVE_NEXT_LOGIN.lock().await;
     *token_saver = should_save_token;
+    drop(token_saver);
     crate::discord::login::login(token).await.unwrap();
     Ok(())
 }
