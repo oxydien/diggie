@@ -186,11 +186,17 @@ export default {
       el.value = newValue;
       el.rows = Math.min(10, this.countLines(el));
     },
+    "apx.data.currentChannelId"(newVal) {
+      const index = this.apx.data.unreadChannels.findIndex((el) => el === newVal);
+      if (index !== -1) {
+        this.apx.data.unreadChannels.splice(index, 1);
+      }
+    },
   },
   mounted() {
-    const index = this.apx.data.unreadChannels.findIndex(el => el === this.apx.data.currentChannelId);
+    const index = this.apx.data.unreadChannels.findIndex((el) => el === this.apx.data.currentChannelId);
     if (index !== -1) {
-      this.apx.data.unreadChannels.splice(index, 1);
+      this.apx.data.unreadChannels = this.apx.data.unreadChannels.splice(index, 1);
     }
   },
   methods: {

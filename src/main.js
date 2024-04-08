@@ -9,6 +9,7 @@ const routes = [
   { path: "/", component: () => import("./pages/Index.vue") },
   { path: "/server/:serverId", component: () => import("./pages/GuildInfo.vue") },
   { path: "/server/:serverId/:channelId", component: () => import("./pages/Chat.vue") },
+  { path: "/server/:serverId/edit/:channelId", component: () => import("./pages/EditChannel.vue") },
   { path: "/forum/:serverId/:channelId", component: () => import("./pages/Forum.vue") },
   { path: "/embed/:serverId/:channelId", component: () => import("./pages/EmbedEditor.vue") },
 ];

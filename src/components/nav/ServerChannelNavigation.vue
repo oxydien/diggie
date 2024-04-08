@@ -2,10 +2,7 @@
 .channels-navigation-wrapper {
   position: relative;
   height: 100%;
-  width: calc(
-    var(--_fullNavWidth) - var(--_leftNavWidth) - var(--gap-md) - 2 *
-      var(--gap-sm)
-  );
+  width: calc(var(--_fullNavWidth) - var(--_leftNavWidth) - var(--gap-md) - 2 * var(--gap-sm));
   display: flex;
   flex-flow: column nowrap;
   gap: var(--gap-sm);
@@ -36,10 +33,7 @@ header {
     flex-flow: row nowrap;
     justify-content: space-between;
     align-items: center;
-    width: calc(
-      var(--_fullNavWidth) - var(--_leftNavWidth) - var(--gap-md) - 2 *
-        var(--gap-sm)
-    );
+    width: calc(var(--_fullNavWidth) - var(--_leftNavWidth) - var(--gap-md) - 2 * var(--gap-sm));
     button {
       display: grid;
       place-items: center;
@@ -111,10 +105,7 @@ header {
           {{ apx.data.currentServer.name }}
         </h1>
         <button @click="serverInfoMenuOpen = !serverInfoMenuOpen">
-          <ArrowIcon
-            style="transition: all 150ms"
-            :style="serverInfoMenuOpen ? '' : 'transform: rotate(-90deg)'"
-          />
+          <ArrowIcon style="transition: all 150ms" :style="serverInfoMenuOpen ? '' : 'transform: rotate(-90deg)'" />
         </button>
       </div>
       <div class="server-info-menu" v-if="serverInfoMenuOpen">
@@ -122,7 +113,7 @@ header {
           <span>Server settings</span>
           <SettingsIcon style="transform: rotate(-90deg)" />
         </button>
-        <button>
+        <button @click="handleEditChannels">
           <span>Edit channels</span>
           <EditIcon style="transform: rotate(-90deg)" />
         </button>
@@ -138,9 +129,11 @@ header {
     <Channel
       :channel="channel"
       :hiddenCategories="hiddenCategories"
+      :editing="isEditMode"
       :key="hiddenCategories"
       v-for="channel in sortedChannels"
       @clicked="handleClick"
+      @edit="handleEdit"
     />
   </div>
 </template>
@@ -161,6 +154,7 @@ export default {
       apx: useAppStore(),
       hiddenCategories: [],
       serverInfoMenuOpen: false,
+      isEditMode: false,
     };
   },
   methods: {
@@ -168,9 +162,7 @@ export default {
       console.log("Loading channel", channel.type, channel.id);
       switch (channel.type) {
         case 4: {
-          const existingHiddenCategoryIndex = this.hiddenCategories.findIndex(
-            (el) => el === channel.id
-          );
+          const existingHiddenCategoryIndex = this.hiddenCategories.findIndex((el) => el === channel.id);
           if (existingHiddenCategoryIndex !== -1) {
             this.hiddenCategories.splice(existingHiddenCategoryIndex, 1);
           } else {
@@ -182,9 +174,7 @@ export default {
           if (this.apx.buffer.loadingChannels) return;
           this.apx.data.currentChannel = channel;
           this.apx.data.currentChannelId = channel.id;
-          this.$router.push(
-            `/forum/${this.apx.data.currentServerId}/${channel.id}`
-          );
+          this.$router.push(`/forum/${this.apx.data.currentServerId}/${channel.id}`);
           getForums(channel.id);
           break;
         }
@@ -192,15 +182,20 @@ export default {
           if (this.apx.buffer.loadingMessages) return;
           this.apx.data.currentChannel = channel;
           this.apx.data.currentChannelId = channel.id;
-          this.apx.data.messages =
-            this.apx.cache.cachedMessages[channel.id] || [];
-          this.$router.push(
-            `/server/${this.apx.data.currentServerId}/${channel.id}`
-          );
+          this.apx.data.messages = this.apx.cache.cachedMessages[channel.id] || [];
+          this.$router.push(`/server/${this.apx.data.currentServerId}/${channel.id}`);
           getMessages(channel.id);
           break;
         }
       }
+    },
+    handleEditChannels() {
+      this.isEditMode = !this.isEditMode;
+      this.serverInfoMenuOpen = false;
+    },
+    handleEdit(channel) {
+      this.apx.data.currentChannel = channel;
+      this.$router.push(`/server/${this.apx.data.currentServerId}/edit/${channel.id}`);
     },
   },
   computed: {
@@ -237,7 +232,11 @@ export default {
         parrents.forEach((parent) => {
           sortedChannels.push(parent);
           if (parent.childs) {
-            parent.childs.sort((a, b) => a.position - b.position);
+            parent.childs.sort((a, b) => {
+              if (a.type === 2 && b.type !== 2) return 1;
+              if (a.type !== 2 && b.type === 2) return -1;
+              return a.position - b.position;
+            });
 
             parent.childs.forEach((child) => {
               sortedChannels.push(child);

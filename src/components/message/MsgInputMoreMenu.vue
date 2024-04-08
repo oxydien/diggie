@@ -43,7 +43,7 @@
 <template>
   <div class="message-input-context-wrapper">
     <div class="message-input-context embed-creator">
-      <div class="menu-button" @click="handleCreateEmbed"><span>Create embed</span> <CodeIcon /></div>
+      <div class="menu-button" @click="handleCreateEmbed"><span>Embed editor</span> <CodeIcon /></div>
     </div>
     <div class="message-input-context attach-file">
       <div class="menu-button"><span>Attach file</span> <ReactionEmojiIcon /></div>

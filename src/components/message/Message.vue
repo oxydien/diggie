@@ -73,6 +73,7 @@
     display: flex;
     flex-flow: row nowrap;
     align-items: center;
+    gap: var(--gap-sm);
     border-radius: var(--radius-sm);
     padding: var(--gap-sm);
     border: 2px solid var(--button-color);
@@ -120,7 +121,10 @@
         </div>
       </div>
       <div class="message-reactions">
-        <div class="reaction" v-for="reaction in message.reactions">{{ reaction.emoji.name }} {{ reaction.count }}</div>
+        <div class="reaction" v-for="reaction in message.reactions">
+          <strong v-html="translateEmoji(reaction.emoji.name)"></strong>
+          <span> {{ reaction.count }}</span>
+        </div>
       </div>
     </div>
   </div>
@@ -133,6 +137,7 @@ import ReplyIcon from "../icons/ReplyIcon.vue";
 import Embed from "./Embed.vue";
 import MarkdownParser from "./MarkdownParser.vue";
 import MessageContextMenu from "./MessageContextMenu.vue";
+import twemoji from "twemoji";
 import { createApp, h } from "vue";
 export default {
   components: { Reply, Embed, MarkdownParser, ReplyIcon },
@@ -161,7 +166,7 @@ export default {
     handleMarkdownLoad() {
       this.$emit("loaded");
     },
-    showContextMenu(event, message) {
+    async showContextMenu(event, message) {
       if (this.ignoreContextMenu == true) return;
       event.preventDefault(); // Prevent default right-click menu
 
@@ -169,21 +174,28 @@ export default {
         this.apx.data.currentMessageContextMenu.remove();
       }
 
-      // Create a new instance of MessageContextMenu
-      const contextMenu = createApp({
-        render: () => h(MessageContextMenu, { message: message }),
-      }).mount(document.createElement("div"));
+      const loadAndMountComponent = async () => {
+        const { default: MessageContextMenu } = await import("./MessageContextMenu.vue");
+        const contextMenu = createApp(MessageContextMenu, { message: message }).mount(document.createElement("div"));
 
-      // Position the context menu
-      contextMenu.$el.style.right = `var(--gap-md)`;
-      contextMenu.$el.style.top = `var(--gap-md)`;
+        // Position the context menu
+        contextMenu.$el.style.right = `var(--gap-md)`;
+        contextMenu.$el.style.top = `var(--gap-md)`;
 
-      // Append the context menu to the body
-      this.$el.appendChild(contextMenu.$el);
+        // Append the context menu to the body
+        this.$el.appendChild(contextMenu.$el);
 
-      window.addEventListener("click", this.hideContextMenu, { once: true });
+        window.addEventListener("click", this.hideContextMenu, { once: true });
 
-      this.apx.data.currentMessageContextMenu = contextMenu.$el;
+        this.apx.data.currentMessageContextMenu = contextMenu.$el;
+      };
+
+      await loadAndMountComponent();
+    },
+    translateEmoji(data) {
+      return twemoji.parse(data, {
+        base: "https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/",
+      });
     },
     hideContextMenu(event) {
       if (

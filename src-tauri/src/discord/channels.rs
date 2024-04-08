@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 use serenity::all::{
-    ChannelId, ChannelType, GuildChannel, GuildId, PrivateChannel, RoleId, ThreadsData,
+    ChannelId, ChannelType, GuildChannel, GuildId, PermissionOverwrite, PrivateChannel, ThreadsData,
 };
 
 use super::DISCORD_CONTEXT;
@@ -72,7 +72,7 @@ pub struct EditableChannel {
     rate_limit_per_user: Option<u32>,
     bitrate: Option<u16>,
     user_limit: Option<u8>,
-    permission_overwrites: Option<Vec<RoleId>>,
+    permission_overwrites: Option<Vec<PermissionOverwrite>>,
     parent_id: Option<ChannelId>,
 }
 
