@@ -209,7 +209,7 @@
 </template>
 
 <script>
-import { getMessages } from "../core/discord/api.js";
+import { getMessages } from "../core/discord/messages";
 import { useAppStore } from "../stores/app.js";
 import ArchiveIcon from "../components/icons/ArchiveIcon.vue";
 import LoadingIcon from "../components/icons/LoadingIcon.vue";
@@ -217,56 +217,56 @@ import MessageIcon from "../components/icons/MessageIcon.vue";
 import ShowLayoutIcon from "../components/icons/ShowLayoutIcon.vue";
 import UserIcon from "../components/icons/UserIcon.vue";
 export default {
-  components: {
-    ArchiveIcon,
-    LoadingIcon,
-    MessageIcon,
-    ShowLayoutIcon,
-    UserIcon,
-  },
-  data() {
-    return {
-      apx: useAppStore(),
-      searchString: "",
-    };
-  },
-  methods: {
-    handleClick(channel) {
-      if (this.apx.buffer.loadingMessages) return;
-      this.apx.data.currentChannel = channel;
-      this.apx.data.currentChannelId = channel.id;
-      this.apx.data.messages = this.apx.cache.cachedMessages[channel.id] || [];
-      this.$router.push(
-        `/server/${this.apx.data.currentServerId}/${channel.id}`
-      );
-      getMessages(channel.id);
-    },
-    findAuthor(userId) {
-      return useAppStore().data.members.find(
-        (member) => member.user.id === userId
-      );
-    },
-  },
-  computed: {
-    sortedThreads() {
-      const data = this.apx.data.forums.threads;
-      if (!data) return [];
-      return data
-        .filter((thread) =>
-          thread.name.toLowerCase().includes(this.searchString.toLowerCase())
-        )
-        .sort((a, b) => {
-          if (a.thread_metadata.archived && !b.thread_metadata.archived)
-            return 1;
-          if (!a.thread_metadata.archived && b.thread_metadata.archived)
-            return -1;
+	components: {
+		ArchiveIcon,
+		LoadingIcon,
+		MessageIcon,
+		ShowLayoutIcon,
+		UserIcon,
+	},
+	data() {
+		return {
+			apx: useAppStore(),
+			searchString: "",
+		};
+	},
+	methods: {
+		handleClick(channel) {
+			if (this.apx.buffer.loadingMessages) return;
+			this.apx.data.currentChannel = channel;
+			this.apx.data.currentChannelId = channel.id;
+			this.apx.data.messages = this.apx.cache.cachedMessages[channel.id] || [];
+			this.$router.push(
+				`/server/${this.apx.data.currentServerId}/${channel.id}`,
+			);
+			getMessages(channel.id);
+		},
+		findAuthor(userId) {
+			return useAppStore().data.members.find(
+				(member) => member.user.id === userId,
+			);
+		},
+	},
+	computed: {
+		sortedThreads() {
+			const data = this.apx.data.forums.threads;
+			if (!data) return [];
+			return data
+				.filter((thread) =>
+					thread.name.toLowerCase().includes(this.searchString.toLowerCase()),
+				)
+				.sort((a, b) => {
+					if (a.thread_metadata.archived && !b.thread_metadata.archived)
+						return 1;
+					if (!a.thread_metadata.archived && b.thread_metadata.archived)
+						return -1;
 
-          return (
-            new Date(a.thread_metadata.create_timestamp) -
-            new Date(b.thread_metadata.create_timestamp)
-          );
-        });
-    },
-  },
+					return (
+						new Date(a.thread_metadata.create_timestamp) -
+						new Date(b.thread_metadata.create_timestamp)
+					);
+				});
+		},
+	},
 };
 </script>

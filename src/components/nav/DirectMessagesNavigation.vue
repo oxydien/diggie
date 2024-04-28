@@ -14,30 +14,30 @@
 </template>
 
 <script>
-import { getMessages } from "../../core/discord/api";
+import { getMessages } from "../../core/discord/messages";
 import { useAppStore } from "../../stores/app";
 import ArrowIcon from "../icons/ArrowIcon.vue";
 
 export default {
-  components: { ArrowIcon },
-  data() {
-    return {
-      apx: useAppStore(),
-    };
-  },
-  methods: {
-    handleClick(channel) {
-      this.apx.data.currentChannel = channel;
-      this.apx.data.currentChannelId = channel.id;
-      this.apx.data.messages = this.apx.cache.cachedChannels[channel.id];
-      this.$router.push(`/dms/${this.apx.data.currentServerId}/${channel.id}`);
-      getMessages(channel.id);
-    },
-  },
-  computed: {
-    sortedChannels() {
-      return this.apx.data.channels;
-    },
-  },
+	components: { ArrowIcon },
+	data() {
+		return {
+			apx: useAppStore(),
+		};
+	},
+	methods: {
+		handleClick(channel) {
+			this.apx.data.currentChannel = channel;
+			this.apx.data.currentChannelId = channel.id;
+			this.apx.data.messages = this.apx.cache.cachedChannels[channel.id];
+			this.$router.push(`/dms/${this.apx.data.currentServerId}/${channel.id}`);
+			getMessages(channel.id);
+		},
+	},
+	computed: {
+		sortedChannels() {
+			return this.apx.data.channels;
+		},
+	},
 };
 </script>

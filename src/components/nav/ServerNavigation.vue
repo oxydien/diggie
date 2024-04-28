@@ -89,27 +89,31 @@
 </template>
 
 <script>
-import { getChannels, getGuildInfo, getGuildMembers } from "../../core/discord/api";
+import { getChannels } from "../../core/discord/channels";
+import { getGuildInfo } from "../../core/discord/guilds";
+import { getGuildMembers } from "../../core/discord/members";
 import { useAppStore } from "../../stores/app";
 import LoadingIcon from "../icons/LoadingIcon.vue";
 
 export default {
-  components: { LoadingIcon },
-  data() {
-    return {
-      apx: useAppStore(),
-    };
-  },
-  methods: {
-    loadChannels(id) {
-      if (this.apx.buffer.loadingChannels) return;
-      this.apx.data.currentServer = this.apx.data.channels.find((el) => el.id === id);
-      this.apx.data.currentServerId = id;
-      this.$router.push(`/server/${id}`);
-      getChannels(id);
-      getGuildInfo(id);
-      getGuildMembers(id);
-    },
-  },
+	components: { LoadingIcon },
+	data() {
+		return {
+			apx: useAppStore(),
+		};
+	},
+	methods: {
+		loadChannels(id) {
+			if (this.apx.buffer.loadingChannels) return;
+			this.apx.data.currentServer = this.apx.data.channels.find(
+				(el) => el.id === id,
+			);
+			this.apx.data.currentServerId = id;
+			this.$router.push(`/server/${id}`);
+			getChannels(id);
+			getGuildInfo(id);
+			getGuildMembers(id);
+		},
+	},
 };
 </script>

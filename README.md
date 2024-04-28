@@ -25,6 +25,7 @@ Please also check the known issues section for any potential problems.
 - [x] View Members
 - [x] React to messages
 - [x] Send messages
+  - [ ] Send polls
 - [x] Send Embeds
   - [x] Embed Editor
   - [x] Embed Viewer
@@ -39,7 +40,7 @@ Please also check the known issues section for any potential problems.
 - [x] Delete messages
 - [ ] Add roles to member
 - [ ] Ban/Kick/Timeout member
-- [ ] Create/Edit/Remove channels
+- [x] Create/Edit/Remove channels
 - [ ] Edit server settings
 - [ ] Audit Log
 

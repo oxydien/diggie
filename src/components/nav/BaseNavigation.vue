@@ -1,12 +1,4 @@
 <style lang="scss" scoped>
-@mixin disableDefaultButton {
-  border: none;
-  color: var(--text-color);
-  background-color: var(--button-color);
-  border-radius: var(--radius-md);
-  cursor: pointer;
-}
-
 .nav-wrapper {
   --_fullNavWidth: 0px;
   --_leftNavWidth: 60px;
@@ -51,24 +43,8 @@
     padding: var(--gap-sm);
 
     button {
-      @include disableDefaultButton;
-      display: grid;
-      place-items: center;
-      position: relative;
-      width: 100%;
       aspect-ratio: 1/1;
-      transition: all 120ms;
-      background-color: var(--button-color-muted);
-      padding: 0;
       font-size: 1.6rem;
-
-      &:hover {
-        background-color: var(--button-color);
-      }
-
-      &.active {
-        background-color: var(--primary-muted-color);
-      }
     }
   }
 }
@@ -113,15 +89,15 @@
   >
     <div class="guild-navigation" v-if="apx.layout.showServers">
       <div class="button-navigation">
-        <button
+        <Button
           @click="onHomeClicked"
-          :class="{ active: apx.data.currentServerId === 'dms' }"
+          :color="apx.data.currentServerId === 'dms' ? 'primary' : ''"
         >
           <HomeIcon />
-        </button>
-        <button @click="apx.layout.showChannels = !apx.layout.showChannels">
+        </Button>
+        <Button @click="apx.layout.showChannels = !apx.layout.showChannels">
           <ShowLayoutIcon :show="apx.layout.showChannels" />
-        </button>
+        </Button>
       </div>
       <ServerNavigation />
     </div>
@@ -141,36 +117,38 @@
 </template>
 
 <script>
+import { defineComponent } from "vue";
 import { useAppStore } from "../../stores/app";
-import UserInfo from "./UserInfo.vue";
 import ServerNavigation from "./ServerNavigation.vue";
 import ServerChannelNavigation from "./ServerChannelNavigation.vue";
 import DirectMessagesNavigation from "./DirectMessagesNavigation.vue";
-import { defineComponent } from "vue";
+import Button from "../base/Button.vue";
 import HomeIcon from "../icons/HomeIcon.vue";
+import UserInfo from "./UserInfo.vue";
 import ShowLayoutIcon from "../icons/ShowLayoutIcon.vue";
-import { getDms } from "../../core/discord/api";
+import { getDms } from "../../core/discord/channels";
 
 export default defineComponent({
-  name: "BaseNavigation",
-  components: {
-    UserInfo,
-    ServerNavigation,
-    ServerChannelNavigation,
-    DirectMessagesNavigation,
-    HomeIcon,
-    ShowLayoutIcon,
-  },
-  data() {
-    return {
-      apx: useAppStore(),
-    };
-  },
-  methods: {
-    onHomeClicked() {
-      getDms();
-      this.$router.push("/");
-    },
-  },
+	name: "BaseNavigation",
+	components: {
+		UserInfo,
+		ServerNavigation,
+		ServerChannelNavigation,
+		DirectMessagesNavigation,
+		HomeIcon,
+		ShowLayoutIcon,
+		Button,
+	},
+	data() {
+		return {
+			apx: useAppStore(),
+		};
+	},
+	methods: {
+		onHomeClicked() {
+			getDms();
+			this.$router.push("/");
+		},
+	},
 });
 </script>

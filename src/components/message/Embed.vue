@@ -72,7 +72,7 @@
 .embed-image-container {
   img,
   video {
-    max-width: 100%;
+    max-width: min(100%, 30vw) !important;
     height: unset !important;
   }
 }
@@ -94,7 +94,7 @@
   transition: all 200ms;
   overflow: hidden;
 
-  video {
+  video, iframe {
     width: 100% !important;
     height: unset !important;
   }
@@ -161,6 +161,7 @@ video {
         v-if="embed.video.url.startsWith('https://www.youtube.com/embed/')"
         :src="embed.video.url"
         frameborder="0"
+        allowfullscreen="1"
         class="video"
       ></iframe>
       <div v-else class="video-holder">
@@ -187,14 +188,14 @@ video {
 import MarkdownParser from "./MarkdownParser.vue";
 
 export default {
-  components: { MarkdownParser },
-  props: {
-    embed: Object,
-  },
-  methods: {
-    fullImage(embedThumbnailImg) {
-      // Implement fullImage function
-    },
-  },
+	components: { MarkdownParser },
+	props: {
+		embed: Object,
+	},
+	methods: {
+		fullImage(embedThumbnailImg) {
+			// Implement fullImage function
+		},
+	},
 };
 </script>

@@ -59,23 +59,9 @@ header {
     gap: var(--gap-sm);
     padding-top: var(--gap-md);
     button {
-      display: flex;
-      flex-flow: row nowrap;
       justify-content: space-between;
-      align-items: center;
-      border: none;
-      transition: all 150ms;
-      color: var(--text-color);
-      background-color: var(--button-color);
-      border-radius: var(--radius-sm);
       padding: var(--gap-sm);
-      font-weight: 600;
-      cursor: pointer;
-
-      &:hover {
-        color: var(--text-highlight-color);
-        background-color: var(--primary-muted-color);
-      }
+      font-weight: 500;
     }
   }
 }
@@ -109,17 +95,17 @@ header {
         </button>
       </div>
       <div class="server-info-menu" v-if="serverInfoMenuOpen">
-        <button>
+        <Button>
           <span>Server settings</span>
           <SettingsIcon style="transform: rotate(-90deg)" />
-        </button>
-        <button @click="handleEditChannels">
+        </Button>
+        <Button @click="handleEditChannels">
           <span>Edit channels</span>
-          <EditIcon style="transform: rotate(-90deg)" /></button
-        ><button @click="handleCreateChannel">
+          <EditIcon style="transform: rotate(-90deg)" /></Button
+        ><Button @click="handleCreateChannel">
           <span>Create channel</span>
           <PlusIcon />
-        </button>
+        </Button>
       </div>
     </header>
     <div class="server-banner" v-if="apx.data.currentServer">
@@ -142,7 +128,8 @@ header {
 </template>
 
 <script>
-import { getForums, getMessages } from "../../core/discord/api";
+import { getForums } from "../../core/discord/channels";
+import { getMessages } from "../../core/discord/messages";
 import { useAppStore } from "../../stores/app";
 import ArrowIcon from "../icons/ArrowIcon.vue";
 import LoadingIcon from "../icons/LoadingIcon.vue";
@@ -150,112 +137,130 @@ import EditIcon from "../icons/EditIcon.vue";
 import SettingsIcon from "../icons/SettingsIcon.vue";
 import PlusIcon from "../icons/PlusIcon.vue";
 import Channel from "../channel/Channel.vue";
+import Button from "../base/Button.vue";
 
 export default {
-  components: { Channel, ArrowIcon, PlusIcon, LoadingIcon, EditIcon, SettingsIcon },
-  data() {
-    return {
-      apx: useAppStore(),
-      hiddenCategories: [],
-      serverInfoMenuOpen: false,
-      isEditMode: false,
-    };
-  },
-  methods: {
-    handleClick(channel) {
-      console.log("Loading channel", channel.type, channel.id);
-      switch (channel.type) {
-        case 4: {
-          const existingHiddenCategoryIndex = this.hiddenCategories.findIndex((el) => el === channel.id);
-          if (existingHiddenCategoryIndex !== -1) {
-            this.hiddenCategories.splice(existingHiddenCategoryIndex, 1);
-          } else {
-            this.hiddenCategories.push(channel.id);
-          }
-          break;
-        }
-        case 15: {
-          if (this.apx.buffer.loadingChannels) return;
-          this.apx.data.currentChannel = channel;
-          this.apx.data.currentChannelId = channel.id;
-          this.$router.push(`/forum/${this.apx.data.currentServerId}/${channel.id}`);
-          getForums(channel.id);
-          break;
-        }
-        default: {
-          if (this.apx.buffer.loadingMessages) return;
-          this.apx.data.currentChannel = channel;
-          this.apx.data.currentChannelId = channel.id;
-          this.apx.data.messages = this.apx.cache.cachedMessages[channel.id] || [];
-          this.$router.push(`/server/${this.apx.data.currentServerId}/${channel.id}`);
-          getMessages(channel.id);
-          break;
-        }
-      }
-    },
-    handleEditChannels() {
-      this.isEditMode = !this.isEditMode;
-      this.serverInfoMenuOpen = false;
-    },
-    handleCreateChannel() {
-      this.isEditMode = true;
-      this.serverInfoMenuOpen = false;
-      this.$router.push(`/server/${this.apx.data.currentServerId}/edit/0`);
-    },
-    handleEdit(channel) {
-      this.apx.data.currentChannel = channel;
-      this.$router.push(`/server/${this.apx.data.currentServerId}/edit/${channel.id}`);
-    },
-  },
-  computed: {
-    sortedChannels() {
-      {
-        const sortedChannels = [];
-        const parrents = [];
-        useAppStore().data.channels.forEach((channel) => {
-          if (channel.type === 4)
-            parrents.push({
-              id: channel.id,
-              name: channel.name,
-              type: channel.type,
-              position: channel.position,
-              childs: [],
-            });
-        });
-        useAppStore().data.channels.forEach((channel) => {
-          if (channel.parent_id) {
-            const parrent = parrents.find((e) => e.id == channel.parent_id);
-            if (parrent) {
-              if (!parrent.childs) {
-                parrent.childs = [];
-              }
-              parrent.childs.push(channel);
-            }
-          } else if (channel.type !== 4) {
-            sortedChannels.push(channel);
-          }
-        });
-        sortedChannels.sort((a, b) => a.position - b.position);
-        parrents.sort((a, b) => a.position - b.position);
+	components: {
+		Channel,
+		ArrowIcon,
+		PlusIcon,
+		LoadingIcon,
+		EditIcon,
+		SettingsIcon,
+		Button,
+	},
+	data() {
+		return {
+			apx: useAppStore(),
+			hiddenCategories: [],
+			serverInfoMenuOpen: false,
+			isEditMode: false,
+		};
+	},
+	methods: {
+		handleClick(channel) {
+			console.log("Loading channel", channel.type, channel.id);
+			switch (channel.type) {
+				case 4: {
+					const existingHiddenCategoryIndex = this.hiddenCategories.findIndex(
+						(el) => el === channel.id,
+					);
+					if (existingHiddenCategoryIndex !== -1) {
+						this.hiddenCategories.splice(existingHiddenCategoryIndex, 1);
+					} else {
+						this.hiddenCategories.push(channel.id);
+					}
+					break;
+				}
+				case 15: {
+					if (this.apx.buffer.loadingChannels) return;
+					this.apx.data.currentChannel = channel;
+					this.apx.data.currentChannelId = channel.id;
+					this.$router.push(
+						`/forum/${this.apx.data.currentServerId}/${channel.id}`,
+					);
+					getForums(channel.id);
+					break;
+				}
+				default: {
+					if (this.apx.buffer.loadingMessages) return;
+					this.apx.data.currentChannel = channel;
+					this.apx.data.currentChannelId = channel.id;
+					this.apx.data.messages =
+						this.apx.cache.cachedMessages[channel.id] || [];
+					this.$router.push(
+						`/server/${this.apx.data.currentServerId}/${channel.id}`,
+					);
+					getMessages(channel.id);
+					break;
+				}
+			}
+		},
+		handleEditChannels() {
+			this.isEditMode = !this.isEditMode;
+			this.serverInfoMenuOpen = false;
+		},
+		handleCreateChannel() {
+			this.isEditMode = true;
+			this.serverInfoMenuOpen = false;
+			this.$router.push(`/server/${this.apx.data.currentServerId}/edit/0`);
+		},
+		handleEdit(channel) {
+			this.apx.data.currentChannel = channel;
+			this.$router.push(
+				`/server/${this.apx.data.currentServerId}/edit/${channel.id}`,
+			);
+		},
+	},
+	computed: {
+		sortedChannels() {
+			{
+				const sortedChannels = [];
+				const parrents = [];
+				useAppStore().data.channels.forEach((channel) => {
+					if (channel.type === 4)
+						parrents.push({
+							id: channel.id,
+							name: channel.name,
+							type: channel.type,
+							position: channel.position,
+							childs: [],
+						});
+				});
+				useAppStore().data.channels.forEach((channel) => {
+					if (channel.parent_id) {
+						const parrent = parrents.find((e) => e.id == channel.parent_id);
+						if (parrent) {
+							if (!parrent.childs) {
+								parrent.childs = [];
+							}
+							parrent.childs.push(channel);
+						}
+					} else if (channel.type !== 4) {
+						sortedChannels.push(channel);
+					}
+				});
+				sortedChannels.sort((a, b) => a.position - b.position);
+				parrents.sort((a, b) => a.position - b.position);
 
-        parrents.forEach((parent) => {
-          sortedChannels.push(parent);
-          if (parent.childs) {
-            parent.childs.sort((a, b) => {
-              if (a.type === 2 && b.type !== 2) return 1;
-              if (a.type !== 2 && b.type === 2) return -1;
-              return a.position - b.position;
-            });
+				parrents.forEach((parent) => {
+					sortedChannels.push(parent);
+					if (parent.childs) {
+						parent.childs.sort((a, b) => {
+							if (a.type === 2 && b.type !== 2) return 1;
+							if (a.type !== 2 && b.type === 2) return -1;
+							return a.position - b.position;
+						});
 
-            parent.childs.forEach((child) => {
-              sortedChannels.push(child);
-            });
-          }
-        });
+						parent.childs.forEach((child) => {
+							sortedChannels.push(child);
+						});
+					}
+				});
 
-        return sortedChannels;
-      }
-    },
-  },
+				return sortedChannels;
+			}
+		},
+	},
 };
 </script>

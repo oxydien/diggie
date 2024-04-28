@@ -34,6 +34,11 @@ export default {
       let md = this.markdown.trim();
 
       md = md.replaceAll("\n", "\n\n");
+      md = md.replace(/```(.)/g, (match, p1) => {
+        return p1 === p1.toLowerCase() && /^[a-z]+$/.test(p1)
+          ? match
+          : `\`\`\`\n${p1}`;
+      });
 
       let data = useAppStore()
         .utils.markdown.render(md)

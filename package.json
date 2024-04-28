@@ -15,7 +15,6 @@
     "@tauri-apps/plugin-shell": ">=2.0.0-beta.0",
     "emojibase-data": "^15.3.0",
     "markdown-it": "^14.1.0",
-    "markdown-it-replacements": "^1.0.2",
     "omorphia": "^0.7.3",
     "pinia": "^2.1.7",
     "twemoji": "^14.0.2",

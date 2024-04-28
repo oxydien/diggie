@@ -45,20 +45,9 @@
     }
 
     .settings-button {
-      display: grid;
-      place-items: center;
-      border: none;
-      height: fit-content;
       width: fit-content;
-      color: var(--text-color);
-      background-color: var(--button-color);
-      border-radius: var(--radius-md);
       padding: var(--gap-sm);
-      cursor: pointer;
-
-      &:hover {
-        background-color: var(--button-color-muted);
-      }
+      border-radius: var(--radius-md);
     }
   }
 
@@ -78,23 +67,8 @@
       gap: var(--gap-sm);
 
       button {
-        display: flex;
-        flex-flow: row nowrap;
         justify-content: space-between;
-        align-items: center;
-        border: none;
-        transition: all 150ms;
-        color: var(--text-color);
-        background-color: var(--button-color);
-        border-radius: var(--radius-sm);
         padding: var(--gap-sm);
-        font-weight: 600;
-        cursor: pointer;
-
-        &:hover {
-          color: var(--text-highlight-color);
-          background-color: var(--primary-muted-color);
-        }
       }
     }
     .hr {
@@ -110,25 +84,28 @@
 <template>
   <div class="user-info">
     <div class="settings" v-if="settingsOpen">
-      <h3>Settings</h3>
+      <h3>Fast Settings</h3>
       <div class="buttons">
-        <button @click="logout">
+        <Button>
+          <span>Settings</span>
+          <SettingsIcon />
+        </Button>
+        <Button @click="copyCurrentUserId">
+          <span>Copy User ID</span>
+          <IdIcon />
+        </Button>
+        <Button @click="logout">
           <span>Log out</span>
           <ArrowIcon style="transform: rotate(-90deg)" />
-        </button>
-        <button @click="copyCurrentUserId">
-          <span>Copy User ID</span>
-          <ArrowIcon style="transform: rotate(-90deg)" />
-        </button>
+        </Button>
       </div>
       <div class="hr"></div>
     </div>
     <div class="base" v-if="apx.isLoggedIn">
       <div class="user">
         <div class="profile-picture-holder">
-          <img
+          <Avatar
             :src="`https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.webp?size=40`"
-            alt=""
           />
         </div>
         <div class="user-name">
@@ -139,40 +116,43 @@
           <em>#{{ user.discriminator }}</em>
         </div>
       </div>
-      <button class="settings-button" @click="toggleUserSettings">
+      <Button class="settings-button" @click="toggleUserSettings">
         <SettingsIcon />
-      </button>
+      </Button>
     </div>
   </div>
 </template>
 <script>
-import { logout } from "../../core/discord/api";
+import { logout } from "../../core/discord/auth";
 import { useAppStore } from "../../stores/app";
 import ArrowIcon from "../icons/ArrowIcon.vue";
+import IdIcon from "../icons/IdIcon.vue";
 import SettingsIcon from "../icons/SettingsIcon.vue";
+import Button from "../base/Button.vue";
+import Avatar from "../base/Avatar.vue";
 
 export default {
-  components: { ArrowIcon, SettingsIcon },
-  data() {
-    return {
-      apx: useAppStore(),
-      user: useAppStore().user,
-      settingsOpen: false,
-    };
-  },
-  methods: {
-    toggleUserSettings() {
-      this.settingsOpen = !this.settingsOpen;
-    },
-    copyCurrentUserId() {
-      this.settingsOpen = false;
-      navigator.clipboard.writeText(this.user.id);
-    },
-    async logout() {
-      this.settingsOpen = false;
-      await logout();
-      this.$router.push("/");
-    },
-  },
+	components: { ArrowIcon, IdIcon, SettingsIcon, Button, Avatar },
+	data() {
+		return {
+			apx: useAppStore(),
+			user: useAppStore().user,
+			settingsOpen: false,
+		};
+	},
+	methods: {
+		toggleUserSettings() {
+			this.settingsOpen = !this.settingsOpen;
+		},
+		copyCurrentUserId() {
+			this.settingsOpen = false;
+			navigator.clipboard.writeText(this.user.id);
+		},
+		async logout() {
+			this.settingsOpen = false;
+			await logout();
+			this.$router.push("/");
+		},
+	},
 };
 </script>
