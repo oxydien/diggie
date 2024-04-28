@@ -22,6 +22,7 @@
 
   select,
   input[type="text"],
+  input[type="number"],
   textarea,
   button,
   input:-internal-autofill-selected {
@@ -36,6 +37,7 @@
   }
 
   input[type="text"]:focus-visible,
+  input[type="number"]:focus-visible,
   textarea:focus-visible,
   button:focus-visible {
     outline: none;
@@ -90,6 +92,13 @@
     }
   }
 }
+.error-data {
+  background-color: #a8121271;
+  border: 3px #d41515;
+  border-radius: 5px;
+  padding: 10px;
+  color: var(--text-highlight-color);
+}
 </style>
 
 <template>
@@ -98,11 +107,22 @@
       <LoadingIcon :animated="true" />
     </div>
     <div class="heading">
-      <h2>Edit channel {{ $route.params.channelId }}</h2>
+      <h2>{{ $route.params.channelId != 0 ? `Edit channel ${$route.params.channelId}` : "Create new channel" }}</h2>
     </div>
     <div class="channel-editor" v-if="editingChannel">
+      <p class="create-warning" v-if="creating">Permissions will be copied from last channel you have visited</p>
+      <div class="error-data" v-if="errorData" v-show="errorData.show">
+        {{ errorData.message }}
+      </div>
       <label for="channel_name">Channel name</label>
       <input type="text" id="channel_name" v-model="editingChannel.name" />
+      <label for="channel_parent">Channel parent</label>
+      <select name="channel_type" id="channel_type" v-model="editingChannel.parent_id">
+        <option :value="null">None</option>
+        <option :value="channel.id" v-for="channel in listOfCategories">{{ channel.name }}</option>
+      </select>
+      <label for="channel_position">Channel position</label>
+      <input type="number" id="channel_position" v-model="editingChannel.position" />
       <label for="channel_type">Channel type</label>
       <select name="channel_type" id="channel_type" v-model="editingChannel.type">
         <option value="0">Text (0)</option>
@@ -117,7 +137,7 @@
       </label>
       <label for="channel_topic">Channel Topic</label>
       <textarea name="channel_topic" id="channel_topic"></textarea>
-      <button @click="handleEditChannel">Send it!</button>
+      <button @click="handleSendButton">Send it!</button>
     </div>
   </div>
 </template>
@@ -131,20 +151,47 @@ export default {
   components: { LoadingIcon },
   data() {
     return {
+      creating: false,
       apx: useAppStore(),
       editingChannel: null,
+      errorData: null,
     };
   },
   mounted() {
-    this.handleChannelSwitch();
+    if (this.$route.params.channelId === "0") {
+      this.creating = true;
+      this.editingChannel = {
+        name: "",
+        topic: "",
+        type: 0,
+        position: 0,
+        permission_overwrites: this.apx.data.currentChannel ? this.apx.data.currentChannel.permission_overwrites : [],
+        parent_id: null,
+        nsfw: false,
+      };
+    } else {
+      this.handleChannelSwitch();
+    }
   },
   watch: {
     "$route.params.channelId"() {
-      this.handleChannelSwitch();
+      if (this.$route.params.channelId === "0") {
+        this.creating = true;
+        this.editingChannel = {
+          name: "",
+          topic: "",
+          type: 0,
+          position: 0,
+          permission_overwrites: this.apx.data.currentChannel.permission_overwrites,
+          parent_id: null,
+          nsfw: false,
+        };
+      } else this.handleChannelSwitch();
     },
   },
   methods: {
     handleChannelSwitch() {
+      if (!this.apx.data.currentChannel) return;
       this.editingChannel = {
         name: this.apx.data.currentChannel.name,
         topic: this.apx.data.currentChannel.topic || "",
@@ -155,6 +202,13 @@ export default {
         nsfw: this.apx.data.currentChannel.nsfw,
       };
     },
+    handleSendButton() {
+      if (this.creating) {
+        this.handleCreateChannel();
+      } else {
+        this.handleEditChannel();
+      }
+    },
     handleEditChannel() {
       const data = JSON.stringify(this.editingChannel);
       this.apx.buffer.editingChannel = true;
@@ -164,8 +218,37 @@ export default {
         data,
       })
         .then((response) => console.log(response))
-        .catch((e) => console.error(e))
+        .catch((e) => {
+          console.error(e);
+          this.errorData = {
+            show: true,
+            message: e,
+          };
+        })
         .finally(() => (this.apx.buffer.editingChannel = false));
+    },
+    handleCreateChannel() {
+      const data = JSON.stringify(this.editingChannel);
+      this.apx.buffer.editingChannel = true;
+      console.log(data);
+      invoke("create_discord_channel", {
+        guildId: this.apx.data.currentServerId,
+        data,
+      })
+        .then((response) => console.log(response))
+        .catch((e) => {
+          console.error(e);
+          this.errorData = {
+            show: true,
+            message: e,
+          };
+        })
+        .finally(() => (this.apx.buffer.editingChannel = false));
+    },
+  },
+  computed: {
+    listOfCategories() {
+      return this.apx.data.channels.filter((channel) => channel.type === 4);
     },
   },
 };

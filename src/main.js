@@ -2,6 +2,7 @@ import { createApp } from "vue";
 import { createRouter, createWebHashHistory } from "vue-router";
 import { useAppStore } from "./stores/app";
 import { createPinia } from "pinia";
+import observeVisibility from "./core/observers/video";
 import "./assets/styles/global.scss";
 import App from "./App.vue";
 
@@ -20,7 +21,7 @@ const appRouter = createRouter({
 });
 
 const pinia = createPinia();
-createApp(App).use(pinia).use(appRouter).mount("#app");
+createApp(App).use(pinia).use(appRouter).directive("observe-visibility", observeVisibility).mount("#app");
 
 // default utils
 

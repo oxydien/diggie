@@ -22,6 +22,7 @@ export const useAppStore = defineStore("app", {
       },
       data: {
         currentMessageContextMenu: null,
+        currentChannelContextMenu: null,
 
         currentServer: null,
         currentServerId: null,
@@ -52,6 +53,10 @@ export const useAppStore = defineStore("app", {
         showServers: true,
         showChannels: true,
         showMembers: false,
+      },
+      utils: {
+        markdown: null,
+        emojiData: [],
       },
     };
   },

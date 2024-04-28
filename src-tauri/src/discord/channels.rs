@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 use serenity::all::{
-    ChannelId, ChannelType, GuildChannel, GuildId, PermissionOverwrite, PrivateChannel, ThreadsData,
+    Channel, ChannelId, ChannelType, GuildChannel, GuildId, PermissionOverwrite, PrivateChannel,
+    ThreadsData,
 };
 
 use super::DISCORD_CONTEXT;
@@ -105,5 +106,21 @@ pub async fn edit_channel(channel_id: u64, map: EditableChannel) -> Result<Guild
     {
         Ok(data) => Ok(data),
         Err(err) => Err(format!("Couldn't edit channel {:?}", err)),
+    }
+}
+
+pub async fn delete_channel(channel_id: u64) -> Result<Channel, String> {
+    let mut ctx = DISCORD_CONTEXT.lock().await;
+    let channel = ChannelId::new(channel_id);
+
+    match ctx
+        .as_mut()
+        .unwrap()
+        .http
+        .delete_channel(channel, Some("diggie deleted channel"))
+        .await
+    {
+        Ok(data) => Ok(data),
+        Err(err) => Err(format!("Couldn't delete channel {:?}", err)),
     }
 }

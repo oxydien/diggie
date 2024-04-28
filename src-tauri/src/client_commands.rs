@@ -1,6 +1,8 @@
-use serenity::all::GuildChannel;
+use serenity::all::{Channel, GuildChannel};
 
-use crate::discord::channels::{create_channel, edit_channel, get_forum_channels, EditableChannel};
+use crate::discord::channels::{
+    create_channel, delete_channel, edit_channel, get_forum_channels, EditableChannel,
+};
 use crate::discord::messages::{delete_message, edit_message, reply_to_message};
 use crate::discord::{
     channels::{get_channels, get_dirrect_channels},
@@ -114,6 +116,15 @@ pub async fn edit_discord_channel(channel_id: &str, data: &str) -> Result<GuildC
     let channel: u64 = channel_id.parse().unwrap();
     let raw_json: EditableChannel = serde_json::from_str(data).unwrap();
     match edit_channel(channel, raw_json).await {
+        Ok(data) => Ok(data),
+        Err(err) => Err(err),
+    }
+}
+
+#[tauri::command]
+pub async fn delete_discord_channel(channel_id: &str) -> Result<Channel, String> {
+    let channel: u64 = channel_id.parse().unwrap();
+    match delete_channel(channel).await {
         Ok(data) => Ok(data),
         Err(err) => Err(err),
     }

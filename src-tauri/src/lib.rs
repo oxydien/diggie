@@ -6,12 +6,12 @@ pub mod settings;
 use std::sync::Arc;
 
 use crate::client_commands::{
-    create_discord_channel, discord_create_reaction, discord_delete_message,
-    discord_delete_reaction, discord_get_forum_channels, discord_login, discord_logout,
-    discord_raw_edit, discord_raw_reply, edit_discord_channel, get_discord_channels,
-    get_discord_dirrect_channels, get_discord_guild_info, get_discord_guild_member_info,
-    get_discord_guild_members, get_discord_guilds, get_discord_messages, send_raw_discord_message,
-    send_simple_discord_message,
+    create_discord_channel, delete_discord_channel, discord_create_reaction,
+    discord_delete_message, discord_delete_reaction, discord_get_forum_channels, discord_login,
+    discord_logout, discord_raw_edit, discord_raw_reply, edit_discord_channel,
+    get_discord_channels, get_discord_dirrect_channels, get_discord_guild_info,
+    get_discord_guild_member_info, get_discord_guild_members, get_discord_guilds,
+    get_discord_messages, send_raw_discord_message, send_simple_discord_message,
 };
 use crate::discord::DISCORD_CONTEXT;
 use crate::settings::auth_saver::get_all_athorizations;
@@ -72,6 +72,7 @@ pub fn run() {
             discord_get_forum_channels,
             create_discord_channel,
             edit_discord_channel,
+            delete_discord_channel,
             send_simple_discord_message,
             send_raw_discord_message,
             discord_raw_edit,

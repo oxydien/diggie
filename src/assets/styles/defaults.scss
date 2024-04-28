@@ -84,3 +84,16 @@ p {
   width: 1em;
   height: 1em;
 }
+
+pre {
+  white-space: pre-wrap;
+  width: 100%;
+  overflow: auto;
+  padding: var(--gap-sm);
+  border-radius: var(--radius-sm);
+
+  code {
+    display: flex;
+    flex-flow: column nowrap;
+  }
+}

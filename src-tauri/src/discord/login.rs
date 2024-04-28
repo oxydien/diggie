@@ -49,7 +49,7 @@ async fn init_client(token: &str) -> Result<Client, String> {
 
 pub async fn logout() -> Result<(), String> {
     println!("[discord-api|logout]");
-    let context_static = DISCORD_CONTEXT.lock().await;
+    let mut context_static = DISCORD_CONTEXT.lock().await;
     if let Some(ctx) = &*context_static {
         ctx.shard.shutdown_clean();
         let data = ctx.data.read().await;
@@ -66,5 +66,6 @@ pub async fn logout() -> Result<(), String> {
             }
         }
     }
+    *context_static = None;
     Ok(())
 }

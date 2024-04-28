@@ -66,7 +66,7 @@
 </style>
 
 <template>
-  <div class="channel-wrapper">
+  <div class="channel-wrapper" @contextmenu="showContextMenu($event)">
     <div
       class="channel"
       :class="{
@@ -99,6 +99,7 @@
 import { useAppStore } from "../../stores/app";
 import ArrowIcon from "../icons/ArrowIcon.vue";
 import SettingsIcon from "../icons/SettingsIcon.vue";
+import { createApp } from "vue";
 export default {
   components: { ArrowIcon, SettingsIcon },
   data() {
@@ -127,6 +128,41 @@ export default {
     },
     handleEdit() {
       this.$emit("edit", this.channel);
+    },
+    async showContextMenu(event) {
+      if (this.ignoreContextMenu == true) return;
+      event.preventDefault(); // Prevent default right-click menu
+
+      if (this.apx.data.currentChannelContextMenu) {
+        this.apx.data.currentChannelContextMenu.remove();
+      }
+
+      const loadAndMountComponent = async () => {
+        const { default: ChannelContextMenu } = await import("./ChannelContextMenu.vue");
+        const contextMenu = createApp(ChannelContextMenu, {
+          channel: this.channel,
+          editCallback: this.handleEdit,
+        }).mount(document.createElement("div"));
+
+        // Position the context menu
+        contextMenu.$el.style.left = `${event.clientX}px`;
+        contextMenu.$el.style.top = `${event.clientY}px`;
+
+        // Append the context menu to the body
+        document.body.appendChild(contextMenu.$el);
+
+        window.addEventListener("click", this.hideContextMenu, { once: true });
+
+        this.apx.data.currentChannelContextMenu = contextMenu.$el;
+      };
+
+      await loadAndMountComponent();
+    },
+    hideContextMenu(event) {
+      if (this.apx.data.currentChannelContextMenu) {
+        this.apx.data.currentChannelContextMenu.remove();
+        this.apx.data.currentChannelContextMenu = null;
+      }
     },
   },
 };

@@ -72,7 +72,7 @@
 .embed-image-container {
   img,
   video {
-    max-width: 100% !important;
+    max-width: 100%;
     height: unset !important;
   }
 }
@@ -99,6 +99,12 @@
     height: unset !important;
   }
 }
+
+img,
+video {
+  max-width: 30vw !important;
+  max-height: 35vh !important;
+}
 </style>
 
 <template>
@@ -109,7 +115,7 @@
     <img :src="embed.thumbnail.url" class="gif-image" />
   </div>
   <div class="embed-gif-container" v-else-if="embed.type === 'gifv'">
-    <video :src="embed.video.url" controls autoplay muted loop class="gif-image"></video>
+    <video :src="embed.video.url" controls autoplay muted loop class="gif-image" v-observe-visibility></video>
   </div>
   <div
     class="embed-container"
@@ -136,7 +142,7 @@
     <div class="embed-title" v-if="embed.title">
       <h3>{{ embed.title }}</h3>
     </div>
-    <div v-if="embed.description" class="embed-description" v-html="parseMessageEmbeds(embed.description)"></div>
+    <div v-if="embed.description" class="embed-description"><MarkdownParser :markdown="embed.description" /></div>
     <div
       v-if="embed.fields && embed.fields.length > 0"
       class="embed-field-container"
@@ -144,8 +150,8 @@
       v-for="field in embed.fields"
       :key="field.name"
     >
-      <h4 v-html="parseMessageEmbeds(field.name)"></h4>
-      <span v-html="parseMessageEmbeds(field.value)"></span>
+      <h4><MarkdownParser :markdown="field.name" /></h4>
+      <span><MarkdownParser :markdown="field.value" /></span>
     </div>
     <div v-if="embed.image && embed.image.url != ''" class="embed-image-container">
       <img :src="embed.image.url" />
@@ -164,7 +170,7 @@
         </div>
         <div class="video-maximize"></div>
         <div class="video-play"></div>
-        <video :src="embed.video.url" controls class="video"></video>
+        <video :src="embed.video.url" controls class="video" v-observe-visibility></video>
       </div>
     </div>
     <div v-if="embed.footer && embed.footer.text" class="embed-footer">
@@ -178,28 +184,16 @@
 </template>
 
 <script>
+import MarkdownParser from "./MarkdownParser.vue";
+
 export default {
+  components: { MarkdownParser },
   props: {
     embed: Object,
   },
   methods: {
     fullImage(embedThumbnailImg) {
       // Implement fullImage function
-    },
-    parseMessageEmbeds(content) {
-      const htmlContent = content
-        .replace(/```(.+?)```/gs, "<pre><code>$1</code></pre>") // code blocks
-        .replace(/`(.*?)`/gs, "<code>$1</code>") // inline code
-        .replaceAll("\n", "<br/>") // new line
-        .replace(/~~(.+?)~~/gs, "<del>$1</del>") // strikethrough
-        .replace(/\*\*(.+?)\*\*/gs, "<strong>$1</strong>") // bold
-        .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>') // links
-        .replace(/\*(.+?)\*/gs, "<em>$1</em>") // italic
-        .replace(/__(.+?)__/gs, "<u>$1</u>") // underline
-        .replace(/<@!?(\d+)>/g, '<span class="mention-span">@$1</span>') // mentions
-        .replace(/<#(\d+)>/g, '<span class="channel-span">#$1</span>') // channel mentions
-        .replace(/<a?:\w+:(\d+)>/g, '<img class="emoji" src="https://cdn.discordapp.com/emojis/$1.gif" />'); // emojis
-      return htmlContent;
     },
   },
 };

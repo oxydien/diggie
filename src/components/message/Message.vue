@@ -55,6 +55,11 @@
   text-wrap: wrap;
   white-space: pre-wrap;
   overflow-wrap: break-word;
+
+  .message-raw {
+    display: none;
+    visibility: hidden;
+  }
 }
 
 .message-attachments {
@@ -77,6 +82,10 @@
     border-radius: var(--radius-sm);
     padding: var(--gap-sm);
     border: 2px solid var(--button-color);
+
+    &.reacted {
+      border: 2px solid var(--primary-muted-color);
+    }
   }
 }
 </style>
@@ -107,6 +116,12 @@
       <div class="message-content">
         <span v-if="message.type === 7"><ReplyIcon />Joined</span>
         <MarkdownParser @loaded="handleMarkdownLoad" v-else :markdown="message.content" />
+        <div class="message-raw">{{ message }}</div>
+      </div>
+      <div class="message-stickers">
+        <div class="sticker-wrapper" v-if="message.sticker_items" v-for="sticker in message.sticker_items">
+          <StickerItem :sticker="sticker" />
+        </div>
       </div>
       <div class="message-embeds">
         <div class="embed-wrapper" v-for="embed in message.embeds">
@@ -116,13 +131,13 @@
       <div class="message-attachments">
         <div class="attachment" v-for="file in message.attachments">
           <img :src="file.url" v-if="file.content_type.includes('image')" />
-          <video :src="file.url" controls v-else-if="file.content_type.includes('video')"></video>
+          <video :src="file.url" controls v-else-if="file.content_type.includes('video')" v-observe-visibility></video>
           <span v-else>{{ file }}</span>
         </div>
       </div>
       <div class="message-reactions">
-        <div class="reaction" v-for="reaction in message.reactions">
-          <strong v-html="translateEmoji(reaction.emoji.name)"></strong>
+        <div class="reaction" :class="{ reacted: reaction.me }" v-for="reaction in message.reactions">
+          <strong v-html="translateEmoji(reaction.emoji.name)"> </strong>
           <span> {{ reaction.count }}</span>
         </div>
       </div>
@@ -136,11 +151,12 @@ import Reply from "./Reply.vue";
 import ReplyIcon from "../icons/ReplyIcon.vue";
 import Embed from "./Embed.vue";
 import MarkdownParser from "./MarkdownParser.vue";
-import MessageContextMenu from "./MessageContextMenu.vue";
 import twemoji from "twemoji";
 import { createApp, h } from "vue";
+import StickerItem from "./StickerItem.vue";
+
 export default {
-  components: { Reply, Embed, MarkdownParser, ReplyIcon },
+  components: { Reply, Embed, MarkdownParser, ReplyIcon, StickerItem },
   data() {
     return {
       apx: useAppStore(),

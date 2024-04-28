@@ -65,6 +65,25 @@
       transform: rotate(180deg);
     }
   }
+  .roles {
+    width: fit-content;
+    margin-inline: auto;
+    text-align: left;
+    .role {
+      span {
+        display: inline-block;
+      }
+      .role-position {
+        width: 3ch;
+      }
+      .role-name {
+        width: 30ch;
+      }
+      .role-id {
+        width: 20ch;
+      }
+    }
+  }
 }
 </style>
 
@@ -94,7 +113,11 @@
           :style="`color: #${role.color}`"
           v-for="role in apx.data.currentServer.roles"
         >
-          {{ role.color }} - {{ role.name }} - {{ role.position }}
+          <span class="role-position">
+            {{ role.position }}
+          </span>
+          <span class="role-name">{{ role.name }}</span>
+          <span class="role-id">{{ role.id }}</span>
         </div>
       </div>
       <!-- {{ apx.data.currentServer }} -->

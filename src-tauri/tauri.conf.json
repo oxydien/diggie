@@ -13,19 +13,18 @@
       {
         "title": "Diggie",
         "width": 1200,
-        "height": 650
+        "height": 650,
+        "minWidth": 1000,
+        "minHeight": 400,
+        "maximized": true,
+        "focus": true,
+        "theme": "Dark"
       }
     ],
     "security": {
       "csp": null
     },
-    "withGlobalTauri": true,
-    "trayIcon": {
-      "id": "diggie-v",
-      "title": "Diggie",
-      "iconPath": "icons/128x128.png",
-      "tooltip": "Discord bot controller"
-    }
+    "withGlobalTauri": true
   },
   "bundle": {
     "active": true,

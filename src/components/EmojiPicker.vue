@@ -81,12 +81,7 @@
 <template>
   <div class="emoji-picker">
     <div class="filter-bar">
-      <input
-        type="text"
-        id="emojiPickerInputBox"
-        v-model="searchQuery"
-        placeholder="Search emojis..."
-      />
+      <input type="text" id="emojiPickerInputBox" v-model="searchQuery" placeholder="Search emojis..." />
     </div>
     <div class="emoji-groups">
       <div
@@ -105,14 +100,14 @@
 </template>
 
 <script>
-import data from "emojibase-data/en/compact.json";
 import twemoji from "twemoji";
+import { useAppStore } from "../stores/app";
 
 export default {
   data() {
     return {
       searchQuery: "",
-      emojis: data,
+      emojis: useAppStore().utils.emojiData,
     };
   },
   emits: ["picked"],
@@ -129,9 +124,7 @@ export default {
         if (
           this.searchQuery &&
           Array.isArray(emoji.tags) &&
-          !emoji.tags.some((tag) =>
-            tag.toLowerCase().includes(this.searchQuery.toLowerCase())
-          ) &&
+          !emoji.tags.some((tag) => tag.toLowerCase().includes(this.searchQuery.toLowerCase())) &&
           !emoji.label.toLowerCase().includes(this.searchQuery.toLowerCase())
         )
           continue;

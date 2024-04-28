@@ -115,7 +115,10 @@ header {
         </button>
         <button @click="handleEditChannels">
           <span>Edit channels</span>
-          <EditIcon style="transform: rotate(-90deg)" />
+          <EditIcon style="transform: rotate(-90deg)" /></button
+        ><button @click="handleCreateChannel">
+          <span>Create channel</span>
+          <PlusIcon />
         </button>
       </div>
     </header>
@@ -145,10 +148,11 @@ import ArrowIcon from "../icons/ArrowIcon.vue";
 import LoadingIcon from "../icons/LoadingIcon.vue";
 import EditIcon from "../icons/EditIcon.vue";
 import SettingsIcon from "../icons/SettingsIcon.vue";
+import PlusIcon from "../icons/PlusIcon.vue";
 import Channel from "../channel/Channel.vue";
 
 export default {
-  components: { Channel, ArrowIcon, LoadingIcon, EditIcon, SettingsIcon },
+  components: { Channel, ArrowIcon, PlusIcon, LoadingIcon, EditIcon, SettingsIcon },
   data() {
     return {
       apx: useAppStore(),
@@ -192,6 +196,11 @@ export default {
     handleEditChannels() {
       this.isEditMode = !this.isEditMode;
       this.serverInfoMenuOpen = false;
+    },
+    handleCreateChannel() {
+      this.isEditMode = true;
+      this.serverInfoMenuOpen = false;
+      this.$router.push(`/server/${this.apx.data.currentServerId}/edit/0`);
     },
     handleEdit(channel) {
       this.apx.data.currentChannel = channel;
