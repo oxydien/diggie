@@ -14,7 +14,7 @@ struct EmbedAuthor {
 struct EmbedField {
     name: String,
     value: String,
-    inline: bool,
+    inline: Option<bool>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -185,6 +185,6 @@ pub async fn get_messages(channel_id: u64) -> Result<Vec<Message>, String> {
         .await
     {
         Ok(data) => Ok(data),
-        Err(_) => Err(String::from("Couldn't get channels")),
+        Err(e) => Err(e.to_string()),
     }
 }

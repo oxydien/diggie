@@ -59,6 +59,13 @@
     --_txt-color: var(--text-button-color);
     text-shadow: 0 0 5px black;
   }
+
+  &.btn-secondary {
+    --_bg-color: var(--primary-muted-color);
+    --_bg-color-hover: var(--primary-dark-color);
+    --_bg-color-disabled: var(--primary-dark-color);
+    --_txt-color: var(--text-button-color);
+  }
 }
 
 .has-button {
@@ -134,6 +141,7 @@ export default {
 		classes() {
 			return {
 				"btn-primary": this.color === "primary",
+				"btn-secondary": this.color === "secondary",
 				"icon-only": this.iconOnly,
 			};
 		},

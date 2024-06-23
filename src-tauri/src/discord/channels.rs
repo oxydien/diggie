@@ -19,9 +19,12 @@ pub async fn get_channels(guild_id: u64) -> Result<Vec<GuildChannel>, String> {
 pub async fn get_dirrect_channels() -> Result<Vec<PrivateChannel>, String> {
     let mut ctx = DISCORD_CONTEXT.lock().await;
 
-    match ctx.as_mut().unwrap().http.get_user_dm_channels().await {
-        Ok(data) => Ok(data),
-        Err(_) => Err(String::from("Couldn't get channels")),
+    match ctx.as_mut() {
+        Some(ctx) => match ctx.http.get_user_dm_channels().await {
+            Ok(data) => Ok(data),
+            Err(_) => Err(String::from("Couldn't get channels")),
+        },
+        None => Err(String::from("No context found")),
     }
 }
 

@@ -68,6 +68,25 @@
   }
 }
 
+.message-poll {
+  display: flex;
+  flex-flow: column nowrap;
+  gap: var(--gap-sm);
+
+  background-color: var(--primary-muted-color);
+  border-radius: var(--radius-md);
+  padding: var(--gap-sm);
+  color: var(--primary-color);
+
+  .poll-option {
+    display: flex;
+    flex-flow: row nowrap;
+    gap: var(--gap-sm);
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
 .message-attachments {
   img,
   video {
@@ -127,6 +146,14 @@
       <div class="message-stickers">
         <div class="sticker-wrapper" v-if="message.sticker_items" v-for="sticker in message.sticker_items">
           <StickerItem :sticker="sticker" />
+        </div>
+      </div>
+      <div class="message-poll" v-if="message.poll">
+        <em>DIGGIE: Poll here :)</em>
+        <strong>{{ message.poll.question.text }}</strong>
+        <div class="poll-option" v-for="option in message.poll.answers">
+          <span>{{ option.poll_media.text }}</span>
+          <em>{{Math.round(message.poll.results.answer_counts.filter((oc) => oc.id === option.answer_id).map(e => e.count).reduce((a, b) => a + b, 0) / message.poll.results.answer_counts.map(e => e.count).reduce((a, b) => a + b, 0) * 100)}}%</em>
         </div>
       </div>
       <div class="message-embeds">

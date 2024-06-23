@@ -5,7 +5,10 @@
         <NotificationWrapper />
       </div>
       <div class="main-content-wrapper">
-        <div class="side-navigation-wrapper" v-if="apx.layout.showChannels || apx.layout.showServers">
+        <div
+          class="side-navigation-wrapper"
+          v-if="apx.layout.showChannels || apx.layout.showServers"
+        >
           <BaseNavigation></BaseNavigation>
         </div>
         <div class="contents-wrapper">
@@ -16,6 +19,7 @@
         </div>
       </div>
     </div>
+    <Notifications />
   </div>
 </template>
 
@@ -28,7 +32,9 @@ import { getGuilds } from "./core/discord/guilds";
 import { SetupMarkdown } from "./core/markdown/utils";
 import BaseNavigation from "./components/nav/BaseNavigation.vue";
 import MemberNavigation from "./components/nav/MemberNavigation.vue";
+import { handleNotification } from "./core/notifications/notificationHandler";
 import NotificationWrapper from "./components/NotificationWrapper.vue";
+import Notifications from "./components/Notifications.vue";
 
 export default {
 	name: "App",
@@ -37,6 +43,7 @@ export default {
 		BaseNavigation,
 		MemberNavigation,
 		NotificationWrapper,
+		Notifications,
 	},
 	data() {
 		return {
@@ -45,6 +52,7 @@ export default {
 			apx: useAppStore(),
 			listeners: {
 				appSavedAuthorizations: null,
+				appNotifications: null,
 				discordStatus: null,
 				discordUserInfo: null,
 				discordOnChannelCreate: null,
@@ -76,6 +84,7 @@ export default {
 	},
 	beforeUnmount() {
 		this.listeners.appSavedAuthorizations();
+		this.listeners.appNotifications();
 		this.listeners.discordStatus();
 		this.listeners.discordUserInfo();
 		this.listeners.discordOnChannelCreate();
@@ -96,6 +105,11 @@ export default {
 					console.log("%cListener saved-authorizations", this.cbd(), ev);
 				},
 			);
+
+			this.listeners.appNotifications = await listen("notification", (ev) => {
+				console.log("%cListener notification", this.cbd("#f287a2"), ev);
+				handleNotification(ev.payload);
+			});
 
 			this.listeners.discordStatus = await listen(
 				"discord-status",
@@ -122,6 +136,12 @@ export default {
 							this.cbd("#ff5202"),
 							err,
 						);
+						handleNotification({
+							type: "Error",
+							title: "Error while handling discord-status",
+							duration: 2,
+							body: err,
+						});
 					}
 				},
 			);
@@ -136,6 +156,12 @@ export default {
 					);
 				} catch (err) {
 					console.error("[listen | user-info]", err);
+					handleNotification({
+						type: "Error",
+						title: "Error while handling discord-status",
+						duration: 2,
+						body: err,
+					});
 				}
 			});
 

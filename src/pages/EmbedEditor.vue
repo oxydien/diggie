@@ -566,9 +566,11 @@
             </Button>
           </div>
           <div class="json-editor" v-if="layout.showJsonEditor">
-            <Textarea style="min-height: 300px" @input="updateJsonData">{{
-              jsonData
-            }}</Textarea>
+            <Textarea
+              style="min-height: 300px"
+              @input="updateJsonData"
+              v-model="jsonData"
+            />
           </div>
         </div>
         <div class="preview-wrapper">

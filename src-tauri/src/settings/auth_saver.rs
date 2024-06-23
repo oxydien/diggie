@@ -89,6 +89,7 @@ pub fn set_all_authorizations(data: Vec<SavedAuth>) -> Result<(), String> {
             .as_secs()
             / 60;
 
+        // Check if encryption was made within the same minute
         if before_encryption == after_encryption {
             break;
         }

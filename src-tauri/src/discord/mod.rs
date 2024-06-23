@@ -13,6 +13,7 @@ use serenity::{
 };
 
 use crate::{
+    notifications::builder::NotificationBuilder,
     settings::auth_saver::{set_all_authorizations, Account, SavedAuth},
     MAIN_APP,
 };
@@ -153,7 +154,15 @@ impl EventHandler for Handler {
                     eprintln!(
                         "[discord::mod::ready] Couldn't save authorizations: {}",
                         err
+                    );
+                    NotificationBuilder::error(
+                        "Couldn't save authorizations",
+                        Some(""),
+                        Some(5),
+                        Some(err),
                     )
+                    .send()
+                    .await
                 }
             }
             Err(err) => eprintln!("{}", err),

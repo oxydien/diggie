@@ -1,7 +1,9 @@
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 pub mod client_commands;
 pub mod discord;
+pub mod notifications;
 pub mod settings;
+pub mod utils;
 
 use std::sync::Arc;
 
@@ -12,6 +14,7 @@ use crate::client_commands::{
     get_discord_channels, get_discord_dirrect_channels, get_discord_guild_info,
     get_discord_guild_member_info, get_discord_guild_members, get_discord_guilds,
     get_discord_messages, send_raw_discord_message, send_simple_discord_message,
+    set_authorizations,
 };
 use crate::discord::DISCORD_CONTEXT;
 use crate::settings::auth_saver::get_all_athorizations;
@@ -80,7 +83,8 @@ pub fn run() {
             discord_raw_reply,
             discord_create_reaction,
             discord_delete_reaction,
-            get_discord_messages
+            get_discord_messages,
+            set_authorizations
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -2,19 +2,41 @@ use serde_json::json;
 use serenity::{model::prelude::*, prelude::*};
 use tauri::Manager;
 
-use crate::{discord::Handler, ShardManagerContainer, MAIN_APP};
+use crate::{
+    discord::Handler, notifications::builder::NotificationBuilder, ShardManagerContainer, MAIN_APP,
+};
 
 use super::DISCORD_CONTEXT;
 
 pub async fn login(token: &str) -> Result<(), String> {
     match logout().await {
         Ok(_) => println!("[discord-api|login] Successfuly logged out!"),
-        Err(err) => println!("Error while logging out: {:?}", err),
+        Err(err) => {
+            let _ = NotificationBuilder::warning(
+                "Error while logging out",
+                Some(""),
+                Some(3),
+                Some(err.clone()),
+            )
+            .send()
+            .await;
+            println!("Error while logging out: {:?}", err)
+        }
     }
     println!("[login::login] Creating client");
     let mut client = match init_client(token).await {
         Ok(val) => val,
-        Err(err) => return Err(format!("Couldn't create client: {:?}", err)),
+        Err(err) => {
+            let _ = NotificationBuilder::error(
+                "Couldn't create client",
+                Some(""),
+                Some(3),
+                Some(err.clone()),
+            )
+            .send()
+            .await;
+            return Err(format!("Couldn't create client: {:?}", err));
+        }
     };
 
     {
@@ -23,8 +45,14 @@ pub async fn login(token: &str) -> Result<(), String> {
     }
 
     println!("[login::login] Starting client");
+    let _ = NotificationBuilder::info("Starting client", Some(""), Some(3), Some(""))
+        .send()
+        .await;
     if let Err(why) = client.start().await {
         println!("Client error: {:?}", why);
+        let _ = NotificationBuilder::error("Client error", Some(""), Some(3), Some(why))
+            .send()
+            .await;
 
         let app_guard = MAIN_APP.lock().await;
         if let Some(app) = &*app_guard {
