@@ -1,6 +1,6 @@
 {
   "productName": "diggie",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "identifier": "Digga",
   "build": {
     "beforeDevCommand": "npm run dev",
