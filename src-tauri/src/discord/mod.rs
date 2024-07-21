@@ -126,7 +126,7 @@ impl EventHandler for Handler {
 
         // Save and encrypt authorizations
         let token = ctx.http.token().to_string();
-        match crate::settings::auth_saver::get_all_athorizations() {
+        match crate::settings::auth_saver::get_all_authorizations().await {
             Ok(mut auths) => {
                 let bot_exists = auths
                     .iter_mut()
@@ -150,7 +150,7 @@ impl EventHandler for Handler {
                         *SHOULD_SAVE_NEXT_LOGIN.lock().await = false;
                     }
                 }
-                if let Err(err) = set_all_authorizations(auths) {
+                if let Err(err) = set_all_authorizations(auths).await {
                     eprintln!(
                         "[discord::mod::ready] Couldn't save authorizations: {}",
                         err

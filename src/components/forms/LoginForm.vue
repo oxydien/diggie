@@ -85,7 +85,7 @@
   <div class="login-form">
     <div
       class="saved-logins-wrapper"
-      v-if="apx.data.savedAuthorizations != [] && !ignoreSavedLogins"
+      v-if="apx.data.savedAuthorizations && apx.data.savedAuthorizations.length > 0 && !ignoreSavedLogins"
     >
       <p>Your saved logins:</p>
       <div class="list-of-logins">

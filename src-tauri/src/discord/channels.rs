@@ -16,7 +16,7 @@ pub async fn get_channels(guild_id: u64) -> Result<Vec<GuildChannel>, String> {
     }
 }
 
-pub async fn get_dirrect_channels() -> Result<Vec<PrivateChannel>, String> {
+pub async fn get_direct_channels() -> Result<Vec<PrivateChannel>, String> {
     let mut ctx = DISCORD_CONTEXT.lock().await;
 
     match ctx.as_mut() {

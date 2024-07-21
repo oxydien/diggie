@@ -10,7 +10,7 @@ use super::DISCORD_CONTEXT;
 
 pub async fn login(token: &str) -> Result<(), String> {
     match logout().await {
-        Ok(_) => println!("[discord-api|login] Successfuly logged out!"),
+        Ok(_) => println!("[discord-api|login] Successfully logged out!"),
         Err(err) => {
             let _ = NotificationBuilder::warning(
                 "Error while logging out",

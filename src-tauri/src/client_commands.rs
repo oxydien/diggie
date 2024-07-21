@@ -5,7 +5,7 @@ use crate::discord::channels::{
 };
 use crate::discord::messages::{delete_message, edit_message, reply_to_message};
 use crate::discord::{
-    channels::{get_channels, get_dirrect_channels},
+    channels::{get_channels, get_direct_channels},
     guilds::{get_guild_info, get_guilds},
     login::logout,
     members::{get_member_info, get_members},
@@ -137,8 +137,8 @@ pub async fn get_discord_channels(guild_id: &str) -> Result<String, String> {
 }
 
 #[tauri::command]
-pub async fn get_discord_dirrect_channels() -> Result<String, String> {
-    match get_dirrect_channels().await {
+pub async fn get_discord_direct_channels() -> Result<String, String> {
+    match get_direct_channels().await {
         Ok(data) => Ok(serde_json::to_string(&data).unwrap()),
         Err(e) => {
             NotificationBuilder::error(
@@ -416,7 +416,7 @@ pub async fn get_discord_messages(channel_id: &str) -> Result<String, String> {
 #[tauri::command]
 pub async fn set_authorizations(data: &str) -> Result<String, String> {
     let authorizations: Vec<SavedAuth> = serde_json::from_str(data).unwrap();
-    if let Err(err) = set_all_authorizations(authorizations) {
+    if let Err(err) = set_all_authorizations(authorizations).await {
         NotificationBuilder::error(
             "Couldn't save authorizations",
             Some(""),

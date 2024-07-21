@@ -7,6 +7,8 @@ use std::{
 
 use serde::{Deserialize, Serialize};
 
+use crate::notifications::builder::NotificationBuilder;
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SavedAuth {
     pub token: String,
@@ -21,16 +23,16 @@ pub struct Account {
     pub avatar: Option<String>,
 }
 
-fn get_auth_path() -> PathBuf {
-    super::get_app_files_path().join("auth.dgt")
+async fn get_auth_path() -> PathBuf {
+    super::get_app_files_path().await.join("auth.dgt")
 }
 
-fn read_auth_file() -> io::Result<String> {
-    fs::read_to_string(get_auth_path())
+async fn read_auth_file() -> io::Result<String> {
+    fs::read_to_string(get_auth_path().await)
 }
 
-fn write_auth_file(data: String) -> io::Result<()> {
-    fs::write(get_auth_path(), data)
+async fn write_auth_file(path: PathBuf, data: String) -> io::Result<()> {
+    fs::write(path, data)
 }
 
 fn get_encryption_alphabet() -> String {
@@ -39,8 +41,8 @@ fn get_encryption_alphabet() -> String {
     )
 }
 
-fn get_last_modified_unix_timestamp() -> std::io::Result<u64> {
-    let metadata = fs::metadata(get_auth_path())?;
+async fn get_last_modified_unix_timestamp() -> std::io::Result<u64> {
+    let metadata = fs::metadata(get_auth_path().await)?;
     let modified_time = metadata.modified()?;
     let duration_since_epoch = modified_time
         .duration_since(SystemTime::UNIX_EPOCH)
@@ -48,17 +50,17 @@ fn get_last_modified_unix_timestamp() -> std::io::Result<u64> {
     Ok(duration_since_epoch.as_secs())
 }
 
-pub fn get_all_athorizations() -> Result<Vec<SavedAuth>, String> {
-    let auth_path = get_auth_path();
+pub async fn get_all_authorizations() -> Result<Vec<SavedAuth>, String> {
+    let auth_path = get_auth_path().await;
     if !auth_path.exists() {
         return Ok(vec![]);
     }
-    let last_modified_timestamp = match get_last_modified_unix_timestamp() {
+    let last_modified_timestamp = match get_last_modified_unix_timestamp().await {
         Ok(val) => val,
         Err(err) => return Err(format!("Couldn't get last_modified: {:?}", err)),
     };
     let last_modified_minutes = last_modified_timestamp / 60;
-    let raw_data = match read_auth_file() {
+    let raw_data = match read_auth_file().await {
         Ok(val) => val,
         Err(err) => return Err(format!("Couldn't read auth file: {:?}", err)),
     };
@@ -70,7 +72,7 @@ pub fn get_all_athorizations() -> Result<Vec<SavedAuth>, String> {
     Ok(decrypted_data)
 }
 
-pub fn set_all_authorizations(data: Vec<SavedAuth>) -> Result<(), String> {
+pub async fn set_all_authorizations(data: Vec<SavedAuth>) -> Result<(), String> {
     let mut encrypted_data: String;
 
     loop {
@@ -95,7 +97,19 @@ pub fn set_all_authorizations(data: Vec<SavedAuth>) -> Result<(), String> {
         }
     }
 
-    if let Err(err) = write_auth_file(encrypted_data) {
+    let path = get_auth_path().await;
+    println!("[auth_saver::set_all_authorizations] DEBUG: Saving auth to {:?}", path);
+
+    if let Err(err) = write_auth_file(path.clone(), encrypted_data).await {
+        NotificationBuilder::error(
+            "Couldn't save authorizations",
+            Some(""),
+            Some(2),
+            Some(format!("Error: {:?}\n\n Path: {}", err, path.display())),
+        )
+        .send()
+        .await;
+
         eprintln!(
             "[auth_saver::set_all_authorizations] Couldn't save authorizations: {:?}",
             err
