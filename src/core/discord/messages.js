@@ -9,6 +9,7 @@ export async function getMessages(channelId) {
 			const json = JSON.parse(data);
 			useAppStore().data.messages = json;
 			useAppStore().cache.cachedMessages[channelId] = json;
+			useAppStore().data.channelHistory.push(channelId);
 			console.log("[dis-api|getMessages]", json);
 		})
 		.catch((err) => {

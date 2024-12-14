@@ -1,4 +1,5 @@
 <style lang="scss" scoped>
+/* Jump to line #:230 */
 #embed_editor {
   height: 100%;
   padding: var(--gap-md);
@@ -243,6 +244,7 @@
       <div class="embed-editor-holder">
         <div class="editor-wrapper">
           <div class="content">
+            <!-- MARK: Embeds -->
             <div
               class="embed-editable"
               v-for="(embed, index) in messageData.embeds"
@@ -250,6 +252,7 @@
                 embed.color || embed.color === 0 ? embed.color.toString(16) : ''
               }`"
             >
+              <!-- MARK: Embed about -->
               <div class="embed-about">
                 <div
                   class="toggle-embed"
@@ -266,6 +269,8 @@
                   />
                   <h4>Embed {{ index + 1 }}</h4>
                 </div>
+
+                <!-- MARK: Embed actions -->
                 <Button @click="removeEmbed(index)"><DeleteIcon /></Button>
                 <Button @click="moveUp(index)" :disabled="index === 0">
                   <ArrowIcon style="transform: rotate(180deg)" />
@@ -277,7 +282,9 @@
                   <ArrowIcon />
                 </Button>
               </div>
+              <!-- MARK: Embed content -->
               <div class="embed-content" v-show="layout.embeds[index].show">
+                <!-- MARK: Embed author -->
                 <div
                   class="author-anchor embed-anchor"
                   @click="
@@ -327,6 +334,8 @@
                     />
                   </div>
                 </div>
+
+                <!-- MARK: Embed body -->
                 <div
                   class="body-anchor embed-anchor"
                   @click="
@@ -343,6 +352,7 @@
                   <span>Body</span>
                 </div>
                 <div class="editable-body" v-show="layout.embeds[index].data">
+                  <!-- MARK: Embed title -->
                   <div class="body-title">
                     <label :for="`title_${index}`">Title</label>
                     <Input
@@ -352,6 +362,7 @@
                       v-model="embed.title"
                     />
                   </div>
+                  <!-- MARK: Embed description -->
                   <div class="body-description">
                     <label :for="`description_${index}`">Description</label>
                     <Textarea
@@ -362,6 +373,7 @@
                     ></Textarea>
                   </div>
                   <div class="body-design">
+                    <!-- MARK: Embed url -->
                     <div class="body-url">
                       <label :for="`url_${index}`">URL</label>
                       <Input
@@ -371,6 +383,7 @@
                         v-model="embed.url"
                       />
                     </div>
+                    <!-- MARK: Embed color -->
                     <div class="body-color">
                       <label :for="`color_${index}`">Color</label>
                       <Input
@@ -395,6 +408,8 @@
                     </div>
                   </div>
                 </div>
+
+                <!-- MARK: Embed images -->
                 <div
                   class="image-anchor embed-anchor"
                   @click="
@@ -414,6 +429,7 @@
                   class="editable-images"
                   v-show="layout.embeds[index].images"
                 >
+                  <!-- MARK: Embed banner -->
                   <div class="images-image">
                     <label :for="`image_${index}`">Image URL</label>
                     <Input
@@ -423,6 +439,8 @@
                       v-model="embed.image.url"
                     />
                   </div>
+
+                  <!-- MARK: Embed thumbnail -->
                   <div class="images-thumbnail">
                     <label :for="`thumbnail_${index}`"
                       >Thumnail image URL</label
@@ -435,6 +453,8 @@
                     />
                   </div>
                 </div>
+
+                <!-- MARK: Embed footer -->
                 <div
                   class="footer-anchor embed-anchor"
                   @click="
@@ -454,6 +474,7 @@
                   class="editable-footer"
                   v-show="layout.embeds[index].footer"
                 >
+                  <!-- MARK: Embed footer text -->
                   <div class="footer-text">
                     <label :for="`footer_text_${index}`">Footer text</label>
                     <Input
@@ -463,6 +484,8 @@
                       v-model="embed.footer.text"
                     />
                   </div>
+
+                  <!-- MARK: Embed footer icon -->
                   <div class="footer-icon-url">
                     <label :for="`footer_icon_url_${index}`"
                       >Footer icon URL</label
@@ -474,6 +497,8 @@
                       v-model="embed.footer.icon_url"
                     />
                   </div>
+
+                  <!-- MARK: Embed footer timestamp -->
                   <div class="footer-timestamp">
                     <label :for="`footer_timestamp_${index}`">Timestamp</label>
                     <Input
@@ -487,6 +512,8 @@
                     </Button>
                   </div>
                 </div>
+
+                <!-- MARK: Embed fields -->
                 <div
                   class="fields-anchor embed-anchor"
                   @click="
@@ -510,6 +537,7 @@
                     class="editable-field"
                     v-for="(field, f_index) in embed.fields"
                   >
+                    <!-- MARK: Embed field -->
                     <div
                       class="embed-anchor field-anchor"
                       @click="
@@ -534,6 +562,7 @@
                       class="field-content"
                       v-show="layout.embeds[index].field[f_index]"
                     >
+                      <!-- MARK: Embed field name -->
                       <label :for="`field_name_${index}_${f_index}`"
                         >Field name</label
                       >
@@ -543,6 +572,8 @@
                         :id="`field_name_${index}_${f_index}`"
                         v-model="field.name"
                       />
+
+                      <!-- MARK: Embed field value -->
                       <label :for="`field_value_${index}_${f_index}`"
                         >Field value</label
                       >
@@ -553,11 +584,15 @@
                       ></Textarea>
                     </div>
                   </div>
+
+                  <!-- MARK: Embed fields actions -->
                   <Button @click="addNewField(index)">Add Field</Button>
                 </div>
               </div>
             </div>
           </div>
+
+          <!-- MARK: Navigation actions -->
           <div class="navigation">
             <Button @click="addNewEmbed">Add Embed</Button>
             <Button>Add Component</Button>
@@ -565,6 +600,8 @@
               Json Editor
             </Button>
           </div>
+
+          <!-- MARK: Json editor -->
           <div class="json-editor" v-if="layout.showJsonEditor">
             <Textarea
               style="min-height: 300px"
@@ -573,6 +610,8 @@
             />
           </div>
         </div>
+
+        <!-- MARK: Preview -->
         <div class="preview-wrapper">
           <Message
             v-if="this.messageData.id"
@@ -601,7 +640,7 @@ export default {
       layout: {
         showJsonEditor: false,
         embeds: [],
-        boforeOpen: {
+        beforeOpen: { // used to restore layout after embed editor is closed
           members: false,
           channels: false,
         },
@@ -609,7 +648,7 @@ export default {
       messageData: {
         id: 1,
         author: useAppStore().user,
-        content: useAppStore().data.textInput.message.content,
+        content: useAppStore().data.textInput.message.content || "",
         timestamp: new Date().toISOString(),
         embeds: useAppStore().data.textInput.message.embeds || [],
       },
@@ -633,14 +672,14 @@ export default {
     }
   },
   mounted() {
-    this.layout.boforeOpen.members = this.apx.layout.showMembers;
+    this.layout.beforeOpen.members = this.apx.layout.showMembers;
     this.apx.layout.showMembers = false;
-    this.layout.boforeOpen.channels = this.apx.layout.showChannels;
+    this.layout.beforeOpen.channels = this.apx.layout.showChannels;
     this.apx.layout.showChannels = false;
   },
   beforeUnmount() {
-    this.apx.layout.showMembers = this.layout.boforeOpen.members;
-    this.apx.layout.showChannels = this.layout.boforeOpen.members;
+    this.apx.layout.showMembers = this.layout.beforeOpen.members;
+    this.apx.layout.showChannels = this.layout.beforeOpen.members;
   },
   methods: {
     addEmbedsToMessage() {

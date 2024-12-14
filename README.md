@@ -10,6 +10,12 @@ To download Diggie, visit the [releases](https://github.com/oxydien/diggie/relea
 
 Please also check the known issues section for any potential problems.
 
+## Preview & Usage
+
+Diggie is built on [Tauri](https://tauri.app/) and [Vue 3](https://vuejs.org/), offering a robust and efficient user interface.
+
+For a visual preview and instalation of the application, visit the [Preview.md](/Preview.md) file.
+
 ## Features & Plans
 
 ### Core Features
@@ -22,13 +28,16 @@ Please also check the known issues section for any potential problems.
 
 - [x] View Servers
 - [x] View Channels
+  - [x] View Threads
 - [x] View Members
 - [x] React to messages
 - [x] Send messages
   - [ ] Send polls
+  - [x] View Polls
 - [x] Send Embeds
   - [x] Embed Editor
-  - [x] Embed Viewer
+  - [x] Embed Preview
+  - [ ] Embed Components (buttons, select, ...)
 - [ ] Check Permissions
   - Check if bot has permission to do some operation, before proceeding
 - [ ] Leave Server
@@ -49,12 +58,6 @@ Please also check the known issues section for any potential problems.
 - [ ] View Raw (messages, channels, members, ...)
 - [ ] Interaction Viewer
 
-## Preview
-
-Diggie is built on [Tauri](https://beta.tauri.app/) and [Vue 3](https://vuejs.org/), offering a robust and efficient user interface.
-
-For a visual overview and instalation of the application, visit the [Preview.md](/Preview.md) file.
-
 ## Contribution
 
 Contributions to Diggie are welcome! I
@@ -64,3 +67,10 @@ f you're interested in contributing, follow these steps:
 2. Create a new branch (e.g., "username/feature").
 3. Make your modifications.
 4. Once ready, create a pull request.
+
+if any issues with running the application, try
+```sh
+export WEBKIT_DISABLE_COMPOSITING_MODE=1
+export WEBKIT_DISABLE_DMABUF_RENDERER=1
+```
+or [open an issue](https://github.com/oxydien/diggie/issues).

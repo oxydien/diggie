@@ -68,25 +68,6 @@
   }
 }
 
-.message-poll {
-  display: flex;
-  flex-flow: column nowrap;
-  gap: var(--gap-sm);
-
-  background-color: var(--primary-muted-color);
-  border-radius: var(--radius-md);
-  padding: var(--gap-sm);
-  color: var(--primary-color);
-
-  .poll-option {
-    display: flex;
-    flex-flow: row nowrap;
-    gap: var(--gap-sm);
-    align-items: center;
-    justify-content: space-between;
-  }
-}
-
 .message-attachments {
   img,
   video {
@@ -148,21 +129,14 @@
           <StickerItem :sticker="sticker" />
         </div>
       </div>
-      <div class="message-poll" v-if="message.poll">
-        <em>DIGGIE: Poll here :)</em>
-        <strong>{{ message.poll.question.text }}</strong>
-        <div class="poll-option" v-for="option in message.poll.answers">
-          <span>{{ option.poll_media.text }}</span>
-          <em>{{Math.round(message.poll.results.answer_counts.filter((oc) => oc.id === option.answer_id).map(e => e.count).reduce((a, b) => a + b, 0) / message.poll.results.answer_counts.map(e => e.count).reduce((a, b) => a + b, 0) * 100)}}%</em>
-        </div>
-      </div>
+      <MessagePoll :poll="message.poll"/>
       <div class="message-embeds">
         <div class="embed-wrapper" v-for="embed in message.embeds">
           <Embed :embed="embed" />
         </div>
       </div>
       <div class="message-attachments">
-        <div class="attachment" v-for="file in message.attachments">
+        <div class="attachment" v-for="file in message.attachments" @contextmenu.capture="attachmentContextMenu($event, file)">
           <img :src="file.url" v-if="file.content_type.includes('image')" />
           <video :src="file.url" controls v-else-if="file.content_type.includes('video')" v-observe-visibility></video>
           <span v-else>{{ file }}</span>
@@ -188,9 +162,18 @@ import MarkdownParser from "./MarkdownParser.vue";
 import twemoji from "twemoji";
 import StickerItem from "./StickerItem.vue";
 import Avatar from "../base/Avatar.vue";
+import MessagePoll from "./MessagePoll.vue";
 
 export default {
-	components: { Reply, Embed, MarkdownParser, ReplyIcon, StickerItem, Avatar },
+	components: {
+		Reply,
+		Embed,
+		MarkdownParser,
+		ReplyIcon,
+		StickerItem,
+		Avatar,
+		MessagePoll,
+	},
 	data() {
 		return {
 			apx: useAppStore(),
@@ -216,6 +199,9 @@ export default {
 		handleMarkdownLoad() {
 			this.$emit("loaded");
 		},
+    attachmentContextMenu(event, attachment) {
+      event.stopPropagation();
+    },
 		async showContextMenu(event, message) {
 			if (this.ignoreContextMenu === true) return;
 			event.preventDefault(); // Prevent default right-click menu

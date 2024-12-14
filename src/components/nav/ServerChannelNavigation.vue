@@ -128,8 +128,7 @@ header {
 </template>
 
 <script>
-import { getForums } from "../../core/discord/channels";
-import { getMessages } from "../../core/discord/messages";
+import { getForums, loadChannel } from "../../core/discord/channels";
 import { useAppStore } from "../../stores/app";
 import ArrowIcon from "../icons/ArrowIcon.vue";
 import LoadingIcon from "../icons/LoadingIcon.vue";
@@ -159,42 +158,19 @@ export default {
 	},
 	methods: {
 		handleClick(channel) {
-			console.log("Loading channel", channel.type, channel.id);
-			switch (channel.type) {
-				case 4: {
-					const existingHiddenCategoryIndex = this.hiddenCategories.findIndex(
-						(el) => el === channel.id,
-					);
-					if (existingHiddenCategoryIndex !== -1) {
-						this.hiddenCategories.splice(existingHiddenCategoryIndex, 1);
-					} else {
-						this.hiddenCategories.push(channel.id);
-					}
-					break;
+			if (channel.type === 4) {
+				const existingHiddenCategoryIndex = this.hiddenCategories.findIndex(
+					(el) => el === channel.id,
+				);
+				if (existingHiddenCategoryIndex !== -1) {
+					this.hiddenCategories.splice(existingHiddenCategoryIndex, 1);
+				} else {
+					this.hiddenCategories.push(channel.id);
 				}
-				case 15: {
-					if (this.apx.buffer.loadingChannels) return;
-					this.apx.data.currentChannel = channel;
-					this.apx.data.currentChannelId = channel.id;
-					this.$router.push(
-						`/forum/${this.apx.data.currentServerId}/${channel.id}`,
-					);
-					getForums(channel.id);
-					break;
-				}
-				default: {
-					if (this.apx.buffer.loadingMessages) return;
-					this.apx.data.currentChannel = channel;
-					this.apx.data.currentChannelId = channel.id;
-					this.apx.data.messages =
-						this.apx.cache.cachedMessages[channel.id] || [];
-					this.$router.push(
-						`/server/${this.apx.data.currentServerId}/${channel.id}`,
-					);
-					getMessages(channel.id);
-					break;
-				}
+				return;
 			}
+
+			loadChannel(channel);
 		},
 		handleEditChannels() {
 			this.isEditMode = !this.isEditMode;

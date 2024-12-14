@@ -105,7 +105,7 @@
       <div class="user">
         <div class="profile-picture-holder">
           <Avatar
-            :src="`https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.webp?size=40`"
+            :src="user.id && user.avatar ?`https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.webp?size=40` : null"
           />
         </div>
         <div class="user-name">

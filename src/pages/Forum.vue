@@ -155,7 +155,7 @@
     </div>
     <div class="search-area">
       <div class="search-by-name">
-        <input
+        <Input
           type="text"
           placeholder="Search or create thread..."
           v-model="searchString"
@@ -215,6 +215,7 @@ import ArchiveIcon from "../components/icons/ArchiveIcon.vue";
 import LoadingIcon from "../components/icons/LoadingIcon.vue";
 import MessageIcon from "../components/icons/MessageIcon.vue";
 import ShowLayoutIcon from "../components/icons/ShowLayoutIcon.vue";
+import Input from "../components/base/Input.vue";
 import UserIcon from "../components/icons/UserIcon.vue";
 export default {
 	components: {
@@ -223,6 +224,7 @@ export default {
 		MessageIcon,
 		ShowLayoutIcon,
 		UserIcon,
+		Input,
 	},
 	data() {
 		return {

@@ -1,140 +1,146 @@
 <style lang="scss" scoped>
 @mixin disableDefaultButton {
-  border: none;
-  color: var(--text-color);
-  background-color: var(--button-color);
-  border-radius: var(--radius-md);
-  cursor: pointer;
+	border: none;
+	color: var(--text-color);
+	background-color: var(--button-color);
+	border-radius: var(--radius-md);
+	cursor: pointer;
 }
 
 *::-webkit-scrollbar {
-  width: 6px;
+	width: 6px;
 }
 
 *::-webkit-scrollbar-track {
-  background: transparent;
+	background: transparent;
 }
 
 *::-webkit-scrollbar-thumb {
-  background-color: var(--primary-color);
-  transition: all 50ms;
-  border-radius: 20px;
-  cursor: pointer;
+	background-color: var(--primary-color);
+	transition: all 50ms;
+	border-radius: 20px;
+	cursor: pointer;
 
-  &:hover {
-    background-color: var(--primary-muted-color);
-  }
+	&:hover {
+		background-color: var(--primary-muted-color);
+	}
 }
 
 .chat-wrapper {
-  display: grid;
-  grid-template-rows: 30px 100fr auto;
-  height: 100%;
+	display: grid;
+	grid-template-rows: 30px 100fr auto;
+	height: 100%;
 }
 
 .channel-info {
-  display: flex;
-  flex-flow: row nowrap;
-  justify-content: space-between;
-  padding: 2px;
-  border-bottom: 1px solid var(--button-color);
+	display: flex;
+	flex-flow: row nowrap;
+	justify-content: space-between;
+	padding: 2px;
+	border-bottom: 1px solid var(--button-color);
 
-  span {
-    display: flex;
-    gap: var(--gap-sm);
-    align-items: center;
-  }
+	.channel-header {
+		display: flex;
+		gap: var(--gap-sm);
+		align-items: center;
+		
+		button {
+			height: calc(100% - var(--gap-sm));
+		}
+	}
 
-  button {
-    @include disableDefaultButton();
-    display: grid;
-    place-items: center;
-    height: 100%;
-    border-radius: var(--radius-sm);
-    transform: rotate(180deg);
-  }
+	button {
+		@include disableDefaultButton();
+		display: grid;
+		place-items: center;
+		height: 100%;
+		border-radius: var(--radius-sm);
+		transform: rotate(180deg);
+	}
 }
 
 .chat-contents {
-  max-width: 100%;
-  overflow-x: clip;
-  overflow-y: auto;
+	max-width: 100%;
+	overflow-x: clip;
+	overflow-y: auto;
 
-  & > :last-child {
-    padding-bottom: 2rem;
-  }
+	&> :last-child {
+		padding-bottom: 2rem;
+	}
 }
 
 .chat-inputs-wrapper {
-  position: relative;
+	position: relative;
 
-  .chat-inputs {
-    display: grid;
-    align-items: center;
-    grid-template-columns: 100fr 40px 40px auto;
-    gap: var(--gap-sm);
+	.chat-inputs {
+		display: grid;
+		align-items: center;
+		grid-template-columns: 100fr 40px 40px auto;
+		gap: var(--gap-sm);
 
-    button {
-      height: calc(100% - var(--gap-sm));
-      margin-top: var(--gap-sm);
-      border-radius: var(--radius-sm);
+		button {
+			height: calc(100% - var(--gap-sm));
+			margin-top: var(--gap-sm);
+			border-radius: var(--radius-sm);
 
-      &:hover {
-        background-color: var(--primary-muted-color);
-        color: var(--text-button-color) !important;
-        text-shadow: 0 0 2px black;
-      }
-    }
-  }
+			&:hover {
+				background-color: var(--primary-muted-color);
+				color: var(--text-button-color) !important;
+				text-shadow: 0 0 2px black;
+			}
+		}
+	}
 }
 </style>
 
 <template>
-  <div class="chat-wrapper">
-    <div class="channel-info">
-      <span
-        ><LoadingIcon v-if="apx.buffer.loadingMessages" />{{
-          apx.data.currentChannel ? apx.data.currentChannel.name : ""
-        }}</span
-      >
-      <button @click="apx.layout.showMembers = !apx.layout.showMembers">
-        <ShowLayoutIcon :show="apx.layout.showMembers" />
-      </button>
-    </div>
-    <div class="chat-contents" ref="chatContentWrapper">
-      <div
-        class="message-wrapper"
-        :class="{ 'has-reply': message.message_reference }"
-        v-for="(message, index) in messages"
-      >
-        <Message :message="message" @loaded="scrollBottom" :previousMessage="messages[index - 1] || null" />
-      </div>
-    </div>
-    <div class="chat-inputs-wrapper">
-      <MsgInputMoreMenu v-if="showMoreContextMenu" />
-      <div class="replies" v-if="apx.data.textInput.replyingTo" @click="cancelReplying" title="Cancel reply">
-        Replying to
-        <strong>{{ getReplyingToMessage.author.global_name || getReplyingToMessage.author.username }}</strong>
-      </div>
-      <div class="editing" v-if="apx.data.textInput.editing" @click="cancelEditing" title="Cancel editing">
-        Editing
-        <strong>{{ apx.data.textInput.editing }}</strong>
-      </div>
-      <div class="attachments">
-        <Attachments />
-      </div>
-      <div class="chat-inputs">
-        <Textarea
-          ref="mainChatInput"
-          @keypress.enter="sendMessageEnter"
-          placeholder="Message here..."
-          v-model="apx.data.textInput.message.content"
-        />
-        <Button @click="showMoreContextMenu = !showMoreContextMenu">...</Button>
-        <Button @click="sendMessageClick"><SendIcon /></Button>
-      </div>
-    </div>
-  </div>
+	<div class="chat-wrapper">
+		<div class="channel-info">
+			<div class="channel-header">
+				<Button iconOnly @click="goBackChannel" v-if="showGoBackButton">
+					<ArrowIcon style="transform: rotate(-90deg)" />
+				</Button>
+				<LoadingIcon v-if="apx.buffer.loadingMessages" />
+				<div class="channel-name">
+					{{
+						apx.data.currentChannel ? apx.data.currentChannel.name : ""
+					}}
+				</div>
+			</div>
+
+			<button @click="apx.layout.showMembers = !apx.layout.showMembers">
+				<ShowLayoutIcon :show="apx.layout.showMembers" />
+			</button>
+		</div>
+		<div class="chat-contents" ref="chatContentWrapper">
+			<div class="message-wrapper" :class="{ 'has-reply': message.message_reference }"
+				v-for="(message, index) in messages">
+				<Message :message="message" @loaded="scrollBottom" :previousMessage="messages[index - 1] || null" />
+			</div>
+		</div>
+		<div class="chat-inputs-wrapper">
+			<MsgInputMoreMenu v-if="showMoreContextMenu" />
+			<div class="replies" v-if="apx.data.textInput.replyingTo" @click="cancelReplying" title="Cancel reply">
+				Replying to
+				<strong>{{ getReplyingToMessage.author.global_name || getReplyingToMessage.author.username }}</strong>
+			</div>
+			<div class="editing" v-if="apx.data.textInput.editing" @click="cancelEditing" title="Cancel editing">
+				Editing
+				<strong>{{ apx.data.textInput.editing }}</strong>
+			</div>
+			<div class="attachments">
+				<Attachments />
+			</div>
+			<div class="chat-inputs">
+				<Textarea ref="mainChatInput" @keypress.enter="sendMessageEnter" placeholder="Message here..."
+					v-model="apx.data.textInput.message.content" />
+				<Button @click="showMoreContextMenu = !showMoreContextMenu">...</Button>
+				<Button @click="sendMessageClick">
+					<SendIcon />
+				</Button>
+			</div>
+		</div>
+	</div>
 </template>
 
 <script>
@@ -145,6 +151,7 @@ import {
 	sendRawReplyMessage,
 	sendRawEditMessage,
 } from "../core/discord/messages.js";
+import { loadChannel } from "../core/discord/channels";
 import ReplyIcon from "../components/icons/ReplyIcon.vue";
 import SendIcon from "../components/icons/SendIcon.vue";
 import ShowLayoutIcon from "../components/icons/ShowLayoutIcon.vue";
@@ -154,6 +161,7 @@ import LoadingIcon from "../components/icons/LoadingIcon.vue";
 import Attachments from "../components/message/Attachments.vue";
 import Textarea from "../components/base/Textarea.vue";
 import Button from "../components/base/Button.vue";
+import ArrowIcon from "../components/icons/ArrowIcon.vue";
 
 export default {
 	components: {
@@ -166,6 +174,7 @@ export default {
 		LoadingIcon,
 		Textarea,
 		Button,
+		ArrowIcon,
 	},
 	data() {
 		return {
@@ -275,6 +284,17 @@ export default {
 				JSON.stringify(this.apx.data.textInput.message),
 			);
 		},
+		goBackChannel() {
+			this.apx.data.channelHistory.pop();
+			const lastChannelId =
+				this.apx.data.channelHistory[this.apx.data.channelHistory.length - 1];
+			const lastChannel = this.apx.cache.cachedChannels[
+				this.apx.data.currentServerId
+			].find((channel) => channel.id === lastChannelId);
+			if (lastChannel) {
+				loadChannel(lastChannel);
+			}
+		},
 	},
 	computed: {
 		messages() {
@@ -297,6 +317,18 @@ export default {
 				(msg) => msg.id === this.apx.data.textInput.editing,
 			);
 			return msg;
+		},
+		showGoBackButton() {
+			// If last channel was a forum channel
+			if (this.apx.data.channelHistory < 2) return false;
+
+			const lastChannelId =
+				this.apx.data.channelHistory[this.apx.data.channelHistory.length - 2];
+			const lastChannel = this.apx.cache.cachedChannels[
+				this.apx.data.currentServerId
+			].find((channel) => channel.id === lastChannelId);
+			console.log("lastChannel", lastChannel, this.apx.data.channelHistory);
+			return lastChannel && lastChannel.type === 15;
 		},
 	},
 };

@@ -1,5 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import { useAppStore } from "../../stores/app";
+import { appRouter } from "../../main";
+import { getMessages } from "./messages";
 
 export async function getChannels(guildId) {
 	useAppStore().buffer.loadingChannels = true;
@@ -22,15 +24,15 @@ export async function getChannels(guildId) {
 export async function getDms() {
 	useAppStore().buffer.loadingChannels = true;
 	useAppStore().layout.isInDirrectMessages = true;
-	invoke("get_discord_dirrect_channels")
+	invoke("get_discord_direct_channels")
 		.then((data) => {
-			console.log("[get_discord_dirrect_channels]", data);
+			console.log("[get_discord_direct_channels]", data);
 			useAppStore().data.channels = JSON.parse(data);
 			useAppStore().data.currentServer = {};
 			useAppStore().data.currentServerId = "dms";
 		})
 		.catch((err) => {
-			console.error("[get_discord_dirrect_channels]", err);
+			console.error("[get_discord_direct_channels]", err);
 		})
 		.finally(() => {
 			useAppStore().buffer.loadingChannels = false;
@@ -47,6 +49,7 @@ export async function getForums(channelId) {
 			const json = JSON.parse(data);
 			useAppStore().data.forums = json;
 			useAppStore().cache.cachedForums[channelId] = json;
+			useAppStore().data.channelHistory.push(channelId);
 			console.log("[dis-api|getForums]", json);
 		})
 		.catch((err) => {
@@ -55,4 +58,40 @@ export async function getForums(channelId) {
 		.finally(() => {
 			useAppStore().buffer.loadingMessages = false;
 		});
+}
+
+export async function loadChannel(channel) {
+	console.log("Loading channel", channel.type, channel.id);
+	switch (channel.type) {
+		// Category
+		case 4: {
+			break;
+		}
+
+		// Forum
+		case 15: {
+			if (useAppStore().buffer.loadingChannels) return;
+			useAppStore().data.currentChannel = channel;
+			useAppStore().data.currentChannelId = channel.id;
+			appRouter.push(
+				`/forum/${useAppStore().data.currentServerId}/${channel.id}`,
+			);
+			getForums(channel.id);
+			break;
+		}
+
+		// Text
+		default: {
+			if (useAppStore().buffer.loadingMessages) return;
+			useAppStore().data.currentChannel = channel;
+			useAppStore().data.currentChannelId = channel.id;
+			useAppStore().data.messages =
+				useAppStore().cache.cachedMessages[channel.id] || [];
+			appRouter.push(
+				`/server/${useAppStore().data.currentServerId}/${channel.id}`,
+			);
+			getMessages(channel.id);
+			break;
+		}
+	}
 }

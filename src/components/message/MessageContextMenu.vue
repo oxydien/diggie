@@ -73,6 +73,9 @@
     <div class="message-context reply" @click="handleReplyButton">
       <div class="menu-button"><span>Reply</span> <ReplyIcon /></div>
     </div>
+    <div class="message-context copy-raw" @click="handleCopyRawButton">
+      <div class="menu-button"><span>Copy Raw Message</span> <CopyCodeIcon /></div>
+    </div>
     <div class="message-context delete" @click="handleDeleteButton">
       <div class="menu-button"><span>Delete Message</span> <DeleteIcon /></div>
     </div>
@@ -86,6 +89,7 @@
 import ReactionEmojiIcon from "../icons/ReactionEmojiIcon.vue";
 import PinIcon from "../icons/PinIcon.vue";
 import CopyIcon from "../icons/CopyIcon.vue";
+import CopyCodeIcon from "../icons/CopyCodeIcon.vue";
 import LinkIcon from "../icons/LinkIcon.vue";
 import ReplyIcon from "../icons/ReplyIcon.vue";
 import DeleteIcon from "../icons/DeleteIcon.vue";
@@ -97,7 +101,7 @@ import { invoke } from "@tauri-apps/api/core";
 
 export default {
   name: "MessageContextMenu",
-  components: { ReactionEmojiIcon, PinIcon, CopyIcon, LinkIcon, ReplyIcon, DeleteIcon, IdIcon, EditIcon, EmojiPicker },
+  components: { ReactionEmojiIcon, PinIcon, CopyIcon, LinkIcon, ReplyIcon, DeleteIcon, IdIcon, EditIcon, EmojiPicker, CopyCodeIcon },
   data() {
     return {
       apx: useAppStore(),
@@ -140,6 +144,10 @@ export default {
       navigator.clipboard.writeText(
         `https://canary.discord.com/channels/@me/${this.apx.data.currentChannelId}/${this.message.id}`
       );
+      this.remove();
+    },
+    handleCopyRawButton(ev) {
+      navigator.clipboard.writeText(JSON.stringify(this.message));
       this.remove();
     },
     handleDeleteButton(ev) {

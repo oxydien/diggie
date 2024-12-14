@@ -15,7 +15,7 @@ const routes = [
   { path: "/embed/:serverId/:channelId", component: () => import("./pages/EmbedEditor.vue") },
 ];
 
-const appRouter = createRouter({
+export const appRouter = createRouter({
   history: createWebHashHistory(),
   routes,
 });

@@ -11,7 +11,7 @@ Before using this bot, ensure that all gateway intents are enabled in the Discor
 
 ## Welcome page
 
-_the left side, will maybe have list of dms_
+_the left side, will maybe have list of dms, if there are any_
 
 ![welcome-page](https://imgur.com/Pf5NTHJ.png)
 

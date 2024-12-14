@@ -15,6 +15,7 @@ use crate::discord::{
 use crate::notifications::builder::NotificationBuilder;
 use crate::settings::auth_saver::{set_all_authorizations, SavedAuth};
 
+// # MARK: Discord login
 #[tauri::command]
 pub async fn discord_login(token: &str, should_save_token: bool) -> Result<(), String> {
     let mut token_saver = crate::discord::SHOULD_SAVE_NEXT_LOGIN.lock().await;
@@ -24,6 +25,7 @@ pub async fn discord_login(token: &str, should_save_token: bool) -> Result<(), S
     Ok(())
 }
 
+// # MARK: Discord logout
 #[tauri::command]
 pub async fn discord_logout() -> Result<(), String> {
     match logout().await {
@@ -37,6 +39,7 @@ pub async fn discord_logout() -> Result<(), String> {
     }
 }
 
+// # MARK: Discord guilds
 #[tauri::command]
 pub async fn get_discord_guilds() -> Result<String, String> {
     match get_guilds().await {
@@ -55,6 +58,7 @@ pub async fn get_discord_guilds() -> Result<String, String> {
     }
 }
 
+// # MARK: D.. guild info
 #[tauri::command]
 pub async fn get_discord_guild_info(guild_id: &str) -> Result<String, String> {
     let guild: u64 = guild_id.parse().unwrap();
@@ -74,6 +78,7 @@ pub async fn get_discord_guild_info(guild_id: &str) -> Result<String, String> {
     }
 }
 
+// # MARK: D guild members
 #[tauri::command]
 pub async fn get_discord_guild_members(guild_id: &str) -> Result<String, String> {
     let guild: u64 = guild_id.parse().unwrap();
@@ -93,6 +98,7 @@ pub async fn get_discord_guild_members(guild_id: &str) -> Result<String, String>
     }
 }
 
+// # MARK: D member info
 #[tauri::command]
 pub async fn get_discord_guild_member_info(
     guild_id: &str,
@@ -117,6 +123,7 @@ pub async fn get_discord_guild_member_info(
     }
 }
 
+// # MARK: D.. channels
 #[tauri::command]
 pub async fn get_discord_channels(guild_id: &str) -> Result<String, String> {
     let guild: u64 = guild_id.parse().unwrap();
@@ -136,6 +143,7 @@ pub async fn get_discord_channels(guild_id: &str) -> Result<String, String> {
     }
 }
 
+// # MARK: Discord DMs
 #[tauri::command]
 pub async fn get_discord_direct_channels() -> Result<String, String> {
     match get_direct_channels().await {
@@ -154,6 +162,7 @@ pub async fn get_discord_direct_channels() -> Result<String, String> {
     }
 }
 
+// # MARK: D.. forums
 #[tauri::command]
 pub async fn discord_get_forum_channels(
     channel_id: &str,
@@ -178,6 +187,7 @@ pub async fn discord_get_forum_channels(
     }
 }
 
+// # MARK: D create channel
 #[tauri::command]
 pub async fn create_discord_channel(guild_id: &str, data: &str) -> Result<GuildChannel, String> {
     let guild: u64 = guild_id.parse().unwrap();
@@ -198,6 +208,7 @@ pub async fn create_discord_channel(guild_id: &str, data: &str) -> Result<GuildC
     }
 }
 
+// # MARK: D edit channel
 #[tauri::command]
 pub async fn edit_discord_channel(channel_id: &str, data: &str) -> Result<GuildChannel, String> {
     let channel: u64 = channel_id.parse().unwrap();
@@ -218,6 +229,7 @@ pub async fn edit_discord_channel(channel_id: &str, data: &str) -> Result<GuildC
     }
 }
 
+// # MARK: D delete channel
 #[tauri::command]
 pub async fn delete_discord_channel(channel_id: &str) -> Result<Channel, String> {
     let channel: u64 = channel_id.parse().unwrap();
@@ -237,6 +249,7 @@ pub async fn delete_discord_channel(channel_id: &str) -> Result<Channel, String>
     }
 }
 
+// # MARK: D send message
 #[tauri::command]
 pub async fn send_simple_discord_message(channel_id: &str, content: &str) -> Result<(), String> {
     let channel: u64 = channel_id.parse().unwrap();
@@ -256,6 +269,7 @@ pub async fn send_simple_discord_message(channel_id: &str, content: &str) -> Res
     }
 }
 
+// # MARK: D raw message
 #[tauri::command]
 pub async fn send_raw_discord_message(channel_id: &str, content: &str) -> Result<(), String> {
     let channel: u64 = channel_id.parse().unwrap();
@@ -275,6 +289,7 @@ pub async fn send_raw_discord_message(channel_id: &str, content: &str) -> Result
     }
 }
 
+// # MARK: D raw reply
 #[tauri::command]
 pub async fn discord_raw_reply(
     channel_id: &str,
@@ -300,6 +315,7 @@ pub async fn discord_raw_reply(
     }
 }
 
+// # MARK: D raw edit
 #[tauri::command]
 pub async fn discord_raw_edit(
     channel_id: &str,
@@ -325,6 +341,7 @@ pub async fn discord_raw_edit(
     }
 }
 
+// # MARK: D delete
 #[tauri::command]
 pub async fn discord_delete_message(channel_id: &str, message_id: &str) -> Result<(), String> {
     let channel: u64 = channel_id.parse().unwrap();
@@ -346,6 +363,7 @@ pub async fn discord_delete_message(channel_id: &str, message_id: &str) -> Resul
     }
 }
 
+// # MARK: D create reaction
 #[tauri::command]
 pub async fn discord_create_reaction(
     channel_id: &str,
@@ -370,6 +388,7 @@ pub async fn discord_create_reaction(
     }
 }
 
+// # MARK: D delete reaction
 #[tauri::command]
 pub async fn discord_delete_reaction(
     channel_id: &str,
@@ -394,6 +413,7 @@ pub async fn discord_delete_reaction(
     }
 }
 
+// # MARK: D get messages
 #[tauri::command]
 pub async fn get_discord_messages(channel_id: &str) -> Result<String, String> {
     let channel: u64 = channel_id.parse().unwrap();
@@ -413,6 +433,7 @@ pub async fn get_discord_messages(channel_id: &str) -> Result<String, String> {
     }
 }
 
+// # MARK: Settings set auth
 #[tauri::command]
 pub async fn set_authorizations(data: &str) -> Result<String, String> {
     let authorizations: Vec<SavedAuth> = serde_json::from_str(data).unwrap();

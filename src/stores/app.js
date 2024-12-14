@@ -31,6 +31,7 @@ export const useAppStore = defineStore("app", {
 				currentChannelId: null,
 
 				unreadChannels: [],
+				channelHistory: [],
 
 				guilds: [],
 				channels: [],

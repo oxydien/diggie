@@ -1,6 +1,6 @@
 <style lang="scss" scoped>
 .channel-wrapper {
-  --_channel-height: 30px;
+  --_channel-height: 38px;
 
   position: relative;
 }
@@ -15,7 +15,7 @@
   transition: all 120ms;
   background-color: var(--button-color-muted);
   border-radius: var(--radius-sm);
-  padding: 2px var(--gap-sm);
+  padding: 4px var(--gap-sm);
   font-weight: 500;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -53,7 +53,7 @@
     position: absolute;
     top: 0;
     left: 0;
-    font-size: 0.7rem;
+    font-size: 0.9rem;
     background-color: var(--foreground-color);
     padding: 0 2px;
     border-radius: var(--radius-sm) 0 var(--radius-sm) 0;
@@ -66,7 +66,7 @@
   right: 0;
   height: var(--_channel-height);
   width: fit-content !important;
-  padding: 2px !important;
+  padding: 4px !important;
   z-index: 12;
 }
 </style>
@@ -151,7 +151,7 @@ export default {
 			this.$emit("edit", this.channel);
 		},
 		async showContextMenu(event) {
-			if (this.ignoreContextMenu == true) return;
+			if (this.ignoreContextMenu === true) return;
 			event.preventDefault(); // Prevent default right-click menu
 
 			if (this.apx.data.currentChannelContextMenu) {
