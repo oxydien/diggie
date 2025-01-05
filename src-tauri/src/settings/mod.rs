@@ -3,6 +3,7 @@ use std::{fs, path::PathBuf};
 use crate::notifications::builder::NotificationBuilder;
 
 pub mod auth_saver;
+pub mod client_settings;
 
 pub async fn get_app_files_path() -> PathBuf {
     if cfg!(target_os = "windows") {

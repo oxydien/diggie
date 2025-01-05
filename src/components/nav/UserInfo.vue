@@ -68,7 +68,7 @@
 
       button {
         justify-content: space-between;
-        padding: var(--gap-sm);
+        font-weight: 600;
       }
     }
     .hr {
@@ -86,7 +86,7 @@
     <div class="settings" v-if="settingsOpen">
       <h3>Fast Settings</h3>
       <div class="buttons">
-        <Button>
+        <Button @click="goToSettings" color="secondary">
           <span>Settings</span>
           <SettingsIcon />
         </Button>
@@ -94,7 +94,7 @@
           <span>Copy User ID</span>
           <IdIcon />
         </Button>
-        <Button @click="logout">
+        <Button @click="logout" color="destructive">
           <span>Log out</span>
           <ArrowIcon style="transform: rotate(-90deg)" />
         </Button>
@@ -153,6 +153,10 @@ export default {
 			await logout();
 			this.$router.push("/");
 		},
+    goToSettings() {
+      this.settingsOpen = false;
+      this.$router.push("/settings");
+    },
 	},
 };
 </script>

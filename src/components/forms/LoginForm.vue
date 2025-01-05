@@ -1,13 +1,26 @@
 <style lang="scss" scoped>
+.login-form {
+  --_form-width: min(calc(var(--app-width) - (var(--gap-md) * 2)), 400px);
+
+  min-width: var(--_form-width);
+  width: var(--_form-width);
+  max-width: var(--_form-width);
+  padding: var(--gap-md);
+  background-color: var(--background-color);
+  border-radius: var(--radius-md);
+}
+
 .login-wrapper {
   display: flex;
   flex-flow: column nowrap;
-  gap: var(--gap-md);
-  margin-top: var(--gap-md);
+  text-align: initial;
 
-  .saved-logins-reminder span {
-    color: var(--primary-color);
-    cursor: pointer;
+  label {
+    margin: var(--gap-md) auto var(--gap-sm) var(--gap-sm);
+
+    &::after {
+      content: ':';
+    }
   }
 
   .token-visibility-toggle {
@@ -17,22 +30,32 @@
 
   .remember-token {
     display: grid;
-    place-items: center;
-    margin-bottom: var(--gap-md);
+    margin-block: var(--gap-md);
 
     .remember-warning {
-      color: #e67e34;
-      font-weight: 600;
-      margin: 0;
+      color: var(--text-muted-color);
+      font-size: 0.8rem;
+      text-align: justify;
+      margin-bottom: var(--gap-md);
+
+      &.active {
+        color: var(--warn-color);
+      }
     }
   }
 }
+
 .saved-logins-wrapper {
   display: grid;
-  grid-template-rows: 25px auto 40px;
+  grid-template-rows: 25px auto;
   gap: var(--gap-md);
+  text-align: initial;
 
   padding: var(--gap-md);
+
+  &>p {
+    margin: var(--gap-md) auto var(--gap-sm) var(--gap-sm);
+  }
 
   .list-of-logins {
     display: flex;
@@ -40,6 +63,21 @@
     gap: var(--gap-sm);
     max-height: 400px;
     overflow-y: auto;
+
+    &:empty {
+      position: relative;
+      padding: var(--gap-lg);
+      border-radius: var(--radius-md);
+      border: 2px dashed var(--text-muted-color);
+
+      &::after {
+        content: 'No saved logins';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      }
+    }
 
     .saved-login {
       display: grid;
@@ -63,6 +101,7 @@
         strong {
           color: var(--text-highlight-color);
         }
+
         span {
           font-size: 0.8rem;
         }
@@ -79,93 +118,74 @@
     }
   }
 }
+
+.carousel-item {
+  /* For shadows and outlines */
+  padding: 2px;
+}
 </style>
 
 <template>
   <div class="login-form">
-    <div
-      class="saved-logins-wrapper"
-      v-if="apx.data.savedAuthorizations && apx.data.savedAuthorizations.length > 0 && !ignoreSavedLogins"
-    >
-      <p>Your saved logins:</p>
-      <div class="list-of-logins">
-        <div class="saved-login" v-for="(login, index) in apx.data.savedAuthorizations">
-          <img
-            :src="`https://cdn.discordapp.com/avatars/${login.account.id}/${login.account.avatar}.webp?size=48`"
-          />
-          <div class="saved-login-info">
-            <strong>{{ login.account.username }}</strong>
-            <span
-              >last login:
-              {{
-                new Date(
-                  login.last_touched.secs_since_epoch * 1000
-                ).toLocaleDateString()
-              }}</span
-            >
+    <ChipSingle :options="['New login', 'Saved logins']" @change="handleChipChange" ref="chip" />
+
+    <Carousel ref="carousel">
+      <!-- Saved logins -->
+      <div class="saved-logins-wrapper carousel-item">
+        <p>Log into your saved bots:</p>
+        <div class="list-of-logins">
+          <div class="saved-login" v-for="(login, index) in apx.data.savedAuthorizations">
+            <img :src="`https://cdn.discordapp.com/avatars/${login.account.id}/${login.account.avatar}.webp?size=48`" />
+            <div class="saved-login-info">
+              <strong>{{ login.account.username }}</strong>
+              <span>last login:
+                {{
+                  new Date(
+                    login.last_touched.secs_since_epoch * 1000
+                  ).toLocaleDateString()
+                }}</span>
+            </div>
+            <Button class="remove-button" :loading="apx.logging" color="destructive" @dblclick="removeSavedLogin(index)">
+              <DeleteIcon />
+            </Button>
+            <Button class="login-button" :loading="apx.logging" color="primary" @click="handleSavedLogin(login)">
+              <ArrowIcon style="transform: rotate(-90deg)" />
+            </Button>
           </div>
-          <Button
-            class="remove-button"
-            :loading="apx.logging"
-            color="secondary"
-            @dblclick="removeSavedLogin(index)"
-          >
-            <DeleteIcon />
-          </Button>
-          <Button
-            class="login-button"
-            :loading="apx.logging"
-            color="primary"
-            @click="handleSavedLogin(login)"
-          >
-            <ArrowIcon style="transform: rotate(-90deg)" />
-          </Button>
         </div>
       </div>
-      <Button @click="ignoreSavedLogins = !ignoreSavedLogins" color="primary">
-        Manual login <ArrowIcon style="transform: rotate(-90deg)" />
-      </Button>
-    </div>
-    <div class="login-wrapper" v-else>
-      <p
-        class="saved-logins-reminder"
-        v-if="apx.data.savedAuthorizations != []"
-      >
-        To access your saved accounts, simply go
-        <span @click="ignoreSavedLogins = !ignoreSavedLogins">here</span>.
-      </p>
-      <div class="input-wrapper">
-        <IconifiedInput
-          v-model="inputs.token"
-          :rightIcon="true"
-          :type="tokenVisible ? 'text' : 'password'"
-          placeholder="Put your bot token here..."
-        >
-          <Button
-            class="token-visibility-toggle"
-            @click="tokenVisible = !tokenVisible"
-          >
-            <EyeVisibleIcon v-if="!tokenVisible" />
-            <EyeHiddenIcon v-else />
-          </Button>
-        </IconifiedInput>
+
+      <!-- Manual login -->
+      <div class="login-wrapper carousel-item">
+        <label for="token">Your bot token</label>
+        <div class="input-wrapper">
+          <IconifiedInput v-model="inputs.token" :rightIcon="true" :type="tokenVisible ? 'text' : 'password'"
+            placeholder="Put your bot token here...">
+            <Button class="token-visibility-toggle" @click="tokenVisible = !tokenVisible">
+              <EyeVisibleIcon v-if="!tokenVisible" />
+              <EyeHiddenIcon v-else />
+            </Button>
+          </IconifiedInput>
+        </div>
+        <div class="remember-token">
+          <Checkbox v-model="inputs.rememberToken">Remember token</Checkbox>
+          <p class="remember-warning" :class="{ 'active': inputs.rememberToken }">
+            This will save the token to your local hardrive with weak encryption algorithm. <a target="_top"
+              href="https://github.com/oxydien/diggie/blob/main/INFO.md#saving-tokens">[learn more]</a>
+          </p>
+        </div>
+        <Button @click="handleLogin" color="primary" class="login-button" :loading="apx.logging">
+          Login
+        </Button>
       </div>
-      <div class="remember-token">
-        <Checkbox v-model="inputs.rememberToken">Remember token</Checkbox>
-        <p v-if="inputs.rememberToken" class="remember-warning">
-          [WARNING] This will save the token <br />
-          to your local hardrive with weak encryption
-        </p>
+
+      <!-- Default page, should never be seen -->
+      <div class="default-page carousel-item">
+        <p>How did you get here?</p>
+        <Button @click="goToPage('saved')">Saved logins</Button>
+        <Button @click="goToPage('login')">Manual login</Button>
       </div>
-      <Button
-        @click="handleLogin"
-        color="primary"
-        class="login-button"
-        :loading="apx.logging"
-      >
-        Login
-      </Button>
-    </div>
+    </Carousel>
   </div>
 </template>
 
@@ -179,51 +199,100 @@ import IconifiedInput from "../base/IconifiedInput.vue";
 import { useAppStore } from "../../stores/app";
 import ArrowIcon from "../icons/ArrowIcon.vue";
 import DeleteIcon from "../icons/DeleteIcon.vue";
+import ChipSingle from "../base/ChipSingle.vue";
+import Carousel from "../base/Carousel.vue";
 
 export default {
-	components: {
-		EyeVisibleIcon,
-		EyeHiddenIcon,
-		ArrowIcon,
-		DeleteIcon,
-		Button,
-		Checkbox,
-		IconifiedInput,
-	},
-	data() {
-		return {
-			apx: useAppStore(),
-			tokenVisible: false,
-			ignoreSavedLogins: false,
-			inputs: {
-				token: "",
-				rememberToken: false,
-			},
-		};
-	},
-	emits: ["login"],
-	methods: {
-		handleLogin() {
-			if (this.apx.logging) return;
-			this.$emit("login", this.inputs);
-		},
-		handleSavedLogin(login) {
-			if (this.apx.logging) return;
-			this.inputs.token = login.token.replace("Bot ", "");
-			this.inputs.rememberToken = false;
-			this.$emit("login", this.inputs);
-		},
-		async removeSavedLogin(index) {
-			const backup = JSON.parse(
-				JSON.stringify(this.apx.data.savedAuthorizations),
-			);
-			backup.splice(index, 1);
-			invoke("set_authorizations", { data: JSON.stringify(backup) }).then(
-				(e) => {
-					invoke("app_load");
-				},
-			);
-		},
-	},
+  components: {
+    EyeVisibleIcon,
+    EyeHiddenIcon,
+    ArrowIcon,
+    DeleteIcon,
+    Button,
+    Checkbox,
+    ChipSingle,
+    Carousel,
+    IconifiedInput,
+  },
+  data() {
+    return {
+      apx: useAppStore(),
+      tokenVisible: false,
+      currentSubPage: "login",
+      inputs: {
+        token: "",
+        rememberToken: false,
+      },
+    };
+  },
+  watch: {
+    "apx.data.savedAuthorizations": {
+      handler() {
+        if (this.apx.data.savedAuthorizations.length > 0) {
+          this.goToPage("saved");
+          this.$refs.chip.setIndex(1);
+        } else {
+          this.goToPage("login");
+          this.$refs.chip.setIndex(0);
+        }
+      },
+      deep: true,
+    }
+  },
+  emits: ["login"],
+  mounted() {
+    this.$nextTick(() => {
+      if (this.apx.data.savedAuthorizations.length > 0) {
+        this.goToPage("saved");
+        this.$refs.chip.setIndex(1);
+      } else {
+        this.goToPage("login");
+        this.$refs.chip.setIndex(0);
+      }
+    })
+  },
+  methods: {
+    handleLogin() {
+      if (this.apx.logging) return;
+      this.$emit("login", this.inputs);
+    },
+    handleSavedLogin(login) {
+      if (this.apx.logging) return;
+      this.inputs.token = login.token.replace("Bot ", "");
+      this.inputs.rememberToken = false;
+      this.$emit("login", this.inputs);
+    },
+    async removeSavedLogin(index) {
+      const backup = JSON.parse(
+        JSON.stringify(this.apx.data.savedAuthorizations),
+      );
+      backup.splice(index, 1);
+      invoke("set_authorizations", { data: JSON.stringify(backup) }).then(
+        (e) => {
+          invoke("app_load");
+        },
+      );
+    },
+    handleChipChange(val) {
+      if (val === "New login") {
+        this.goToPage("login");
+      } else {
+        this.goToPage("saved");
+      }
+    },
+    goToPage(page) {
+      this.currentSubPage = page;
+      const carousel = this.$refs.carousel;
+      if (carousel) {
+        const pageIndex = this.currentSubPage === "login" ? 1 : 0;
+
+        setTimeout(() => {
+          // For some sizing issues, we need to wait a bit
+          // Also nice animation
+          carousel.setIndex(pageIndex);
+        }, 80);
+      }
+    },
+  },
 };
 </script>

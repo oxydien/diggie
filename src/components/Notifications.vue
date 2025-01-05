@@ -78,40 +78,29 @@
     }
   }
 }
-
 </style>
 
 <template>
   <div class="notification-container">
-    <div
-      class="notification"
-      :class="{
-        'notification-error': notification.value.type === 'Error',
-        'notification-warning': notification.value.type === 'Warning',
-        'notification-info': notification.value.type === 'Info',
-      }"
-      v-for="(notification, index) in notifications"
-      :id="`notification-${index}`"
-      :key="notification"
-    >
-      <div
-        class="notification-duration"
+    <div class="notification" :class="{
+      'notification-error': notification.value.type === 'Error',
+      'notification-warning': notification.value.type === 'Warning',
+      'notification-info': notification.value.type === 'Info',
+    }" v-for="(notification, index) in notifications" :id="`notification-${index}`" :key="notification">
+      <div class="notification-duration"
         :style="`width: ${Math.round((notification.value.remainingDuration / notification.value.duration) * 100)}%`"
-        :ref="`notificationDuration_${notification}`"
-      ></div>
+        :ref="`notificationDuration_${notification}`"></div>
       <div class="notification-header">
         <strong class="notification-title">{{
           notification.value.title
-        }}</strong>
-        <Button
-          class="close-button"
-          @click="notifications.splice(notification, 1)"
-        >
+          }}</strong>
+        <Button class="close-button" @click="notifications.splice(notification, 1)">
           <CloseIcon />
         </Button>
       </div>
       <p class="notification-body">{{ notification.value.body }}
-        <pre class="notification-code"><code>{{ notification.value.code.trim() }}</code></pre>
+      <pre class="notification-code"
+        v-if="notification.value.code"><code>{{ notification.value.code?.trim() }}</code></pre>
       </p>
     </div>
   </div>
@@ -119,47 +108,46 @@
 
 <script>
 import { notifications } from "../core/notifications/notificationHandler";
-import { Notification } from "../core/notifications/notification";
 import CloseIcon from "./icons/CloseIcon.vue";
 import Button from "./base/Button.vue";
 
 export default {
-	components: {
-		Button,
-		CloseIcon,
-	},
-	data() {
-		return {
-			notifications: notifications,
-			checkInterval: null,
-		};
-	},
-	mounted() {
-		this.checkInterval = setInterval(() => {
-			notifications.value.forEach((notification, index) => {
-				const notificationElement = document.getElementById(
-					`notification-${index}`,
-				);
-				const isMouseOver = notificationElement?.querySelector(":hover");
-				if (isMouseOver) {
-					notification.value.remainingDuration =
-						notification.value.duration || 0;
-					return;
-				}
+  components: {
+    Button,
+    CloseIcon,
+  },
+  data() {
+    return {
+      notifications: notifications,
+      checkInterval: null,
+    };
+  },
+  mounted() {
+    this.checkInterval = setInterval(() => {
+      notifications.value.forEach((notification, index) => {
+        const notificationElement = document.getElementById(
+          `notification-${index}`,
+        );
+        const isMouseOver = notificationElement?.querySelector(":hover");
+        if (isMouseOver) {
+          notification.value.remainingDuration =
+            notification.value.duration || 0;
+          return;
+        }
 
-				if (
-					notification.value.remainingDuration == null &&
-					!(notification.value.remainingDuration <= 0)
-				) {
-					notification.value.remainingDuration =
-						notification.value.duration || 0;
-				}
-				notification.value.remainingDuration -= 0.1;
-				if (notification.value.remainingDuration <= 0) {
-					notifications.value.splice(index, 1);
-				}
-			});
-		}, 100);
-	},
+        if (
+          notification.value.remainingDuration == null &&
+          !(notification.value.remainingDuration <= 0)
+        ) {
+          notification.value.remainingDuration =
+            notification.value.duration || 0;
+        }
+        notification.value.remainingDuration -= 0.1;
+        if (notification.value.remainingDuration <= 0) {
+          notifications.value.splice(index, 1);
+        }
+      });
+    }, 100);
+  },
 };
 </script>

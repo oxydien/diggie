@@ -8,6 +8,7 @@ export const useAppStore = defineStore("app", {
 			user: {},
 			buffer: {
 				loadingChannels: false,
+				loadingChannelInfo: false,
 				loadingGuilds: false,
 				loadingGuildInfo: false,
 				loadingMembers: false,
@@ -55,10 +56,12 @@ export const useAppStore = defineStore("app", {
 				showServers: false,
 				showChannels: false,
 				showMembers: false,
+				channelEditMode: false,
 			},
 			utils: {
 				markdown: null,
 				emojiData: [],
+				clientSettings: null,
 			},
 		};
 	},

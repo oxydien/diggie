@@ -1,4 +1,4 @@
-<style lang="scss" scoped>
+<style lang="scss">
 .btn {
   --_bg-color: var(--button-color);
   --_bg-color-hover: var(--button-color-muted);
@@ -20,7 +20,7 @@
   border: none;
   cursor: pointer;
 
-  &:hover {
+  &:hover:not(.disabled) {
     background-color: var(--_bg-color-hover);
   }
 
@@ -30,6 +30,7 @@
     filter: brightness(80%);
   }
 
+  &.disabled,
   &:disabled {
     background-color: var(--_bg-color-disabled);
     cursor: not-allowed;
@@ -53,18 +54,46 @@
   }
 
   &.btn-primary {
+    font-weight: 900;
     --_bg-color: var(--primary-color);
     --_bg-color-hover: var(--primary-muted-color);
     --_bg-color-disabled: var(--primary-muted-color);
-    --_txt-color: var(--text-button-color);
-    text-shadow: 0 0 5px black;
+    --_txt-color: var(--text-inverse-color);
+
+    &:hover {
+      --_txt-color: var(--text-button-color);
+    }
   }
 
   &.btn-secondary {
-    --_bg-color: var(--primary-muted-color);
-    --_bg-color-hover: var(--primary-dark-color);
-    --_bg-color-disabled: var(--primary-dark-color);
-    --_txt-color: var(--text-button-color);
+    font-weight: 600;
+    --_bg-color: var(--button-color);
+    --_bg-color-hover: var(--secondary-muted-color);
+    --_bg-color-disabled: var(--secondary-dark-color);
+    --_txt-color: var(--secondary-color);
+
+    &:hover {
+      --_txt-color: var(--text-button-color);
+    }
+  }
+
+  &.btn-default {
+    --_bg-color: var(--button-color);
+    --_bg-color-hover: var(--button-color-muted);
+    --_bg-color-disabled: var(--button-color-muted);
+    --_txt-color: var(--text-color);
+  }
+
+  &.btn-destructive {
+    font-weight: 800;
+    --_bg-color: var(--button-color);
+    --_bg-color-hover: var(--destructive-muted-color);
+    --_bg-color-disabled: var(--destructive-muted-color);
+    --_txt-color: var(--destructive-color);
+
+    &:hover {
+      --_txt-color: var(--text-button-color);
+    }
   }
 }
 
@@ -80,71 +109,54 @@
 </style>
 
 <template>
-  <button
-    v-if="loading"
-    class="btn loading"
-    :class="classes"
-    :disabled="loading"
-  >
+  <button v-if="loading" class="btn loading" :class="classes" :disabled="loading">
     <LoadingDots />
   </button>
-  <button
-    v-else-if="!link"
-    class="btn"
-    :class="classes"
-    :disabled="be_disabled"
-  >
+  <button v-else-if="!link" class="btn" :class="classes" :disabled="be_disabled">
     <slot />
   </button>
-  <a
-    v-else-if="link.startsWith('http')"
-    :href="link"
-    class="has-button"
-    :target="external ? '_blank' : '_self'"
-  >
+  <a v-else-if="link.startsWith('http')" :href="link" class="has-button" :target="external ? '_blank' : '_self'">
     <button class="btn" :class="classes" tabindex="-1" :disabled="be_disabled">
       <slot />
     </button>
   </a>
-  <router-link
-    v-else
-    :to="link"
-    class="has-button"
-    :target="external ? '_blank' : '_self'"
-  >
+  <RouterLink v-else :to="link" class="has-button" :target="external ? '_blank' : '_self'">
     <button class="btn" :class="classes" tabindex="-1" :disabled="be_disabled">
       <slot />
     </button>
-  </router-link>
+  </RouterLink>
 </template>
 
 <script>
 import LoadingDots from "../icons/LoadingDots.vue";
+import { RouterLink } from "vue-router";
 
 export default {
-	components: { LoadingDots },
-	props: {
-		loading: Boolean,
-		link: {
-			type: String,
-			default: "",
-		},
-		color: {
-			type: String,
-			default: "",
-		},
-		be_disabled: Boolean,
-		external: Boolean,
-		iconOnly: Boolean,
-	},
-	computed: {
-		classes() {
-			return {
-				"btn-primary": this.color === "primary",
-				"btn-secondary": this.color === "secondary",
-				"icon-only": this.iconOnly,
-			};
-		},
-	},
+  components: { LoadingDots, RouterLink },
+  props: {
+    loading: Boolean,
+    link: {
+      type: String,
+      default: "",
+    },
+    color: {
+      type: String,
+      default: "default",
+    },
+    be_disabled: Boolean,
+    external: Boolean,
+    iconOnly: Boolean,
+  },
+  computed: {
+    classes() {
+      return {
+        "btn-primary": this.color === "primary",
+        "btn-secondary": this.color === "secondary",
+        "btn-default": this.color === "default",
+        "btn-destructive": this.color === "destructive",
+        "icon-only": this.iconOnly,
+      };
+    },
+  },
 };
 </script>

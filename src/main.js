@@ -13,6 +13,7 @@ const routes = [
   { path: "/server/:serverId/edit/:channelId", component: () => import("./pages/EditChannel.vue") },
   { path: "/forum/:serverId/:channelId", component: () => import("./pages/Forum.vue") },
   { path: "/embed/:serverId/:channelId", component: () => import("./pages/EmbedEditor.vue") },
+  { path: "/settings", component: () => import("./pages/Settings.vue") },
 ];
 
 export const appRouter = createRouter({

@@ -1,23 +1,38 @@
 :root {
-  --background-color: #131315;
-  --foreground-color: #0d0d0d;
-  --highlighted-foreground-color: #101010;
-  --button-color: #1a1d22;
-  --button-color-muted: #131315;
-  --primary-color-highlighted: #15cbf1;
-  --primary-color: #18bcdc;
-  --primary-muted-color: #103f50;
-  --primary-dark-color: #06232d;
-  --text-color: #8a94a8;
-  --text-muted-color: #5a616d;
-  --text-highlight-color: #c9ced7;
-  --text-button-color: #f7f7f7;
+  --background-color: #0b0b11;
+  --foreground-color: #030309;
+  --highlighted-foreground-color: #0f1118;
+  --alternate-foreground-color: #07070e;
+
+  --button-color: #13151a;
+  --button-color-muted: #0d0d12;
+
+  --primary-color-highlighted: #1df2e4;
+  --primary-color: #01bcc0;
+  --primary-muted-color: #113e41;
+  --primary-dark-color: #03292f;
+
+  --secondary-color: #7b91e0;
+  --secondary-muted-color: #3c4c7d;
+  --secondary-dark-color: #242c47;
+
+  --warn-color: #e0a72c;
+  --warn-muted-color: #a17413;
+
+  --destructive-color: #b21c30;
+  --destructive-muted-color: #5a161f;
+
+  --text-color: #93a5c9;
+  --text-muted-color: #59667c;
+  --text-highlight-color: #dbe6fa;
+  --text-inverse-color: #141d1d;
+  --text-button-color: #dbe4ff;
 
   --radius-lg: 16px;
   --radius-md: 12px;
-  --radius-sm: 6px;
+  --radius-sm: 8px;
 
-  --gap-lg: 16px;
-  --gap-md: 12px;
-  --gap-sm: 6px;
+  --gap-lg: 18px;
+  --gap-md: 8px;
+  --gap-sm: 4px;
 }

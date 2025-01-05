@@ -7,11 +7,15 @@ input {
   transition: all 120ms;
   border-radius: var(--radius-sm);
   outline: 2px solid transparent;
-  font-size: 1.3rem;
+  font-size: 1.2rem;
   border: none;
 
   &:focus-visible {
     outline-color: var(--primary-color);
+  }
+
+  &::placeholder {
+    color: var(--text-color-muted);
   }
 }
 </style>

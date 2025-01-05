@@ -23,18 +23,18 @@
   height: 300px;
   width: 450px;
   background-color: var(--button-color-muted);
-  padding: var(--gap-md);
-  padding-top: 0;
+
   border-radius: var(--radius-md);
   overflow: auto;
 
   .filter-bar {
     position: sticky;
-    top: 0;
+    inset: 0 0 auto 0;
     padding-top: var(--gap-md);
     margin-bottom: var(--gap-sm);
     background-color: inherit;
-    border-bottom: 2px solid var(--text-color);
+    border-bottom: 2px solid var(--button-color);
+    padding: var(--gap-md);
 
     input[type="text"],
     input:-internal-autofill-selected {
@@ -59,6 +59,8 @@
     grid-template-columns: repeat(auto-fill, minmax(1em, 1fr));
     gap: var(--gap-sm);
     justify-content: center;
+    padding: var(--gap-md);
+    padding-top: 0;
     font-size: 1.5rem;
 
     .clickable-emoji {
@@ -79,21 +81,16 @@
 </style>
 
 <template>
-  <div class="emoji-picker">
+  <div class="emoji-picker" @click="handleClick">
     <div class="filter-bar">
-      <input type="text" id="emojiPickerInputBox" v-model="searchQuery" placeholder="Search emojis..." />
+      <Input type="text" id="emojiPickerInputBox" v-model="searchQuery" placeholder="Search emojis..." />
     </div>
     <div class="emoji-groups">
-      <div
-        v-for="emoji in twemojiData"
-        :key="emoji.hexcode"
-        :id="`emoji_${emoji.hexcode}`"
-        :data-m-label="emoji.label"
-        :data-m-group="emoji.group"
-        class="clickable-emoji"
-        @click="pickEmoji(emoji)"
-      >
-        <span class="emoji-wrapper" v-html="emoji.html"></span>
+      <div v-for="emoji in twemojiData" :key="emoji.hexcode" :id="`emoji_${emoji.hexcode}`" :data-m-label="emoji.label"
+        :data-m-group="emoji.group" class="clickable-emoji" @click="pickEmoji(emoji)">
+        <span class="emoji-wrapper">
+          <img :src="emoji.url" class="emoji" loading="lazy" :alt="emoji.unicode">
+        </span>
       </div>
     </div>
   </div>
@@ -101,9 +98,11 @@
 
 <script>
 import twemoji from "twemoji";
+import Input from "./base/Input.vue";
 import { useAppStore } from "../stores/app";
 
 export default {
+  components: { Input },
   data() {
     return {
       searchQuery: "",
@@ -115,6 +114,10 @@ export default {
     pickEmoji(emoji) {
       this.$emit("picked", emoji);
     },
+    handleClick(ev) {
+      ev?.stopPropagation();
+      console.log("Clicked outside");
+    }
   },
   computed: {
     twemojiData() {
@@ -152,6 +155,14 @@ export default {
         if (a.order > b.order) return 1;
         return 0;
       });
+
+      for (const emoji of data) {
+        const image = new DOMParser().parseFromString(emoji.html, "text/html").querySelector("img");
+        if (image) {
+          emoji.url = image.src;
+        }
+      }
+
       return data;
     },
   },

@@ -10,11 +10,11 @@ use std::sync::Arc;
 use crate::client_commands::{
     create_discord_channel, delete_discord_channel, discord_create_reaction,
     discord_delete_message, discord_delete_reaction, discord_get_forum_channels, discord_login,
-    discord_logout, discord_raw_edit, discord_raw_reply, edit_discord_channel,
+    discord_logout, discord_raw_edit, discord_raw_reply, edit_discord_channel, get_client_settings,
     get_discord_channels, get_discord_direct_channels, get_discord_guild_info,
     get_discord_guild_member_info, get_discord_guild_members, get_discord_guilds,
     get_discord_messages, send_raw_discord_message, send_simple_discord_message,
-    set_authorizations,
+    set_authorizations, set_client_settings, get_discord_channel_info
 };
 use crate::discord::DISCORD_CONTEXT;
 use crate::settings::auth_saver::get_all_authorizations;
@@ -38,7 +38,7 @@ impl TypeMapKey for ShardManagerContainer {
 async fn app_load(app_handle: AppHandle) -> Result<(), String> {
     println!("App loaded!");
     *MAIN_APP.lock().await = Some(app_handle.clone());
-    let context_guard = DISCORD_CONTEXT.lock().await;
+    let context_guard: tokio::sync::MutexGuard<'_, Option<serenity::prelude::Context>> = DISCORD_CONTEXT.lock().await;
     if let Some(ctx) = context_guard.as_ref() {
         let current_user = ctx.http.get_current_user().await.unwrap();
         match app_handle.emit("discord-status", json!({"loggedIn": true})) {
@@ -73,6 +73,7 @@ pub async fn run() {
             get_discord_guild_members,
             get_discord_guild_member_info,
             get_discord_channels,
+            get_discord_channel_info,
             get_discord_direct_channels,
             discord_get_forum_channels,
             create_discord_channel,
@@ -86,7 +87,9 @@ pub async fn run() {
             discord_create_reaction,
             discord_delete_reaction,
             get_discord_messages,
-            set_authorizations
+            set_authorizations,
+            get_client_settings,
+            set_client_settings,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

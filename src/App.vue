@@ -1,26 +1,23 @@
 <template>
-  <div class="app-wrapper">
-    <div class="app-sub-wrapper">
-      <div class="notification-wrapper">
-        <NotificationWrapper />
-      </div>
-      <div class="main-content-wrapper">
-        <div
-          class="side-navigation-wrapper"
-          v-if="apx.layout.showChannels || apx.layout.showServers"
-        >
-          <BaseNavigation></BaseNavigation>
-        </div>
-        <div class="contents-wrapper">
-          <RouterView />
-        </div>
-        <div class="members-wrapper" v-if="apx.layout.showMembers">
-          <MemberNavigation />
-        </div>
-      </div>
-    </div>
-    <Notifications />
-  </div>
+	<div class="app-wrapper">
+		<div class="app-sub-wrapper">
+			<div class="notification-wrapper">
+				<NotificationWrapper />
+			</div>
+			<div class="main-content-wrapper">
+				<div class="side-navigation-wrapper" v-if="apx.layout.showChannels || apx.layout.showServers">
+					<BaseNavigation></BaseNavigation>
+				</div>
+				<div class="contents-wrapper">
+					<RouterView />
+				</div>
+				<div class="members-wrapper" v-if="apx.layout.showMembers">
+					<MemberNavigation />
+				</div>
+			</div>
+		</div>
+		<Notifications />
+	</div>
 </template>
 
 <script>
@@ -98,6 +95,24 @@ export default {
 	},
 	methods: {
 		async loaded() {
+			try {
+				const settings = await invoke("get_client_settings");
+				useAppStore().utils.clientSettings = JSON.parse(settings);
+				console.log("%cClient Settings", this.cbd(), settings);
+			} catch (error) {
+				console.error(
+					"%cCouldn't get client settings:",
+					this.cbd("#ff5202"),
+					error,
+				);
+				handleNotification({
+					type: "Error",
+					title: "Error getting client settings",
+					duration: 2,
+					body: error,
+				});
+			}
+
 			this.listeners.appSavedAuthorizations = await listen(
 				"saved-authorizations",
 				(ev) => {
@@ -234,15 +249,80 @@ export default {
 						this.cbd("#298202"),
 						ev,
 					);
+					// If the message is in the current channel
 					if (ev.payload.channel_id === useAppStore().data.currentChannelId) {
 						const messageId = ev.payload.message_id;
 						const messages = useAppStore().data.messages;
+
+						// Find the message containing the reaction
 						const index = messages.findIndex(
 							(message) => message.id === messageId,
 						);
 
+						console.log(ev.payload)
+
 						if (index !== -1) {
-							messages[index].reactions.push(ev.payload);
+							// Check if the reaction already exists
+							const existingReactionIndex = messages[index].reactions.findIndex(
+								(reaction) =>
+									reaction.count > 0 &&
+									((reaction.emoji.name && reaction.emoji.name === ev.payload.emoji.name) ||
+										reaction.emoji.name === ev.payload.emoji)
+							);
+
+							// If the reaction doesn't exist, add it
+							if (existingReactionIndex === -1) {
+								messages[index].reactions.push({ count: 1, ...ev.payload });
+							} else {
+								// If the reaction exists, increment the counter
+								messages[index].reactions[existingReactionIndex].count += 1;
+							}
+						}
+					}
+				},
+			);
+
+			this.listeners.discordOnMessageReactionRemove = await listen(
+				"discord-reaction-remove",
+				(ev) => {
+					console.debug(
+						"%cListener discord-reaction-remove",
+						this.cbd("#296402"),
+						ev,
+					);
+					// If the message is in the current channel
+					if (ev.payload.channel_id === useAppStore().data.currentChannelId) {
+						const messageId = ev.payload.message_id;
+						const messages = useAppStore().data.messages;
+
+						// Find the message containing the reaction
+						const index = messages.findIndex(
+							(message) => message.id === messageId,
+						);
+
+						console.log(ev.payload)
+
+						if (index !== -1) {
+							// Check if the reaction already exists
+							const existingReactionIndex = messages[index].reactions.findIndex(
+								(reaction) =>
+									reaction.count > 0 &&
+									((reaction.emoji.name && reaction.emoji.name === ev.payload.emoji.name) ||
+										reaction.emoji.name === ev.payload.emoji)
+							);
+
+							if (existingReactionIndex !== -1) {
+								// If the reaction exists, decrement the counter
+								messages[index].reactions[existingReactionIndex].count -= 1;
+
+								// If the counter is 0, remove the reaction
+								if (messages[index].reactions[existingReactionIndex].count <= 0) {
+									messages[index].reactions.splice(
+										existingReactionIndex,
+										1,
+									);
+								}
+							}
 						}
 					}
 				},

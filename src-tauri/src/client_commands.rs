@@ -1,7 +1,8 @@
 use serenity::all::{Channel, GuildChannel};
 
 use crate::discord::channels::{
-    create_channel, delete_channel, edit_channel, get_forum_channels, EditableChannel,
+    create_channel, delete_channel, edit_channel, get_channel_info, get_forum_channels,
+    EditableChannel,
 };
 use crate::discord::messages::{delete_message, edit_message, reply_to_message};
 use crate::discord::{
@@ -14,6 +15,7 @@ use crate::discord::{
 };
 use crate::notifications::builder::NotificationBuilder;
 use crate::settings::auth_saver::{set_all_authorizations, SavedAuth};
+use crate::settings::client_settings::ClientSettings;
 
 // # MARK: Discord login
 #[tauri::command]
@@ -176,6 +178,26 @@ pub async fn discord_get_forum_channels(
         Err(e) => {
             NotificationBuilder::error(
                 "Discord forum channels fetch error",
+                Some(""),
+                Some(5),
+                Some(e.clone()),
+            )
+            .send()
+            .await;
+            return Err(e);
+        }
+    }
+}
+
+// # MARK: D.. get channel
+#[tauri::command]
+pub async fn get_discord_channel_info(channel_id: &str) -> Result<String, String> {
+    let channel: u64 = channel_id.parse().unwrap();
+    match get_channel_info(channel).await {
+        Ok(data) => Ok(serde_json::to_string(&data).unwrap()),
+        Err(e) => {
+            NotificationBuilder::error(
+                "Discord channel info fetch error",
                 Some(""),
                 Some(5),
                 Some(e.clone()),
@@ -375,15 +397,16 @@ pub async fn discord_create_reaction(
     match add_reaction(channel, message, emoji).await {
         Ok(_) => Ok(()),
         Err(err) => {
+            let err_data = err.clone();
             NotificationBuilder::error(
                 "ERROR while adding reaction",
-                Some(""),
+                Some(err.0),
                 Some(5),
-                Some(err.clone()),
+                Some(err.1),
             )
             .send()
             .await;
-            return Err(err);
+            return Err(format!("{}:{}", err_data.0, err_data.1));
         }
     }
 }
@@ -400,15 +423,16 @@ pub async fn discord_delete_reaction(
     match remove_reaction(channel, message, emoji).await {
         Ok(_) => Ok(()),
         Err(err) => {
+            let err_data = err.clone();
             NotificationBuilder::error(
                 "ERROR while removing reaction",
-                Some(""),
+                Some(err.0),
                 Some(5),
-                Some(err.clone()),
+                Some(err.1),
             )
             .send()
             .await;
-            return Err(err);
+            return Err(format!("{}:{}", err_data.0, err_data.1));
         }
     }
 }
@@ -453,4 +477,46 @@ pub async fn set_authorizations(data: &str) -> Result<String, String> {
         return Err(err);
     }
     Ok(String::from("Successfully saved authorizations"))
+}
+
+// # MARK: Get Client Settings
+#[tauri::command]
+pub async fn get_client_settings() -> Result<String, String> {
+    let settings = ClientSettings::load().await;
+    match settings {
+        Ok(data) => Ok(serde_json::to_string(&data).unwrap()),
+        Err(err) => {
+            NotificationBuilder::error(
+                "Couldn't get client settings",
+                Some(""),
+                Some(5),
+                Some(err.to_string()),
+            )
+            .send()
+            .await;
+            return Err(err.to_string());
+        }
+    }
+}
+
+// # MARK: Set Client Settings
+#[tauri::command]
+pub async fn set_client_settings(data: &str) -> Result<String, String> {
+    let settings: ClientSettings = serde_json::from_str(data).unwrap();
+    if let Err(err) = settings.save().await {
+        NotificationBuilder::error(
+            "Couldn't save client settings",
+            Some(""),
+            Some(5),
+            Some(err.to_string()),
+        )
+        .send()
+        .await;
+        eprintln!(
+            "[set_client_settings] Couldn't save client settings: {}",
+            err
+        );
+        return Err(err.to_string());
+    }
+    Ok(String::from("Successfully saved client settings"))
 }

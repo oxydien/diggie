@@ -17,29 +17,36 @@ textarea {
     outline: none;
     box-shadow: 0 0 0 2px var(--primary-color);
   }
+
+  &::placeholder {
+    color: var(--text-color-muted);
+  }
 }
 </style>
 
 <template>
-  <textarea wrap="hard" rows="1" @input="handleInput">{{ value }}</textarea>
+  <textarea wrap="hard" rows="1" ref="textarea" @input="handleInput">{{ modelValue }}</textarea>
 </template>
 
 <script>
 export default {
   data() {
-    return {
-      value: this.modelValue,
-    };
   },
   props: {
     modelValue: { type: String, required: true, default: "" },
   },
+  watch: {
+  },
   emits: ["update:modelValue"],
+  expose: ["focus"],
   methods: {
+    focus() {
+      this.$refs.textarea.focus();
+    },
     handleInput(event) {
-      this.value = event.target.value;
+      const value = event.target.value;
       event.target.rows = Math.min(10, this.countLines(event.target));
-      this.$emit("update:modelValue", this.value);
+      this.$emit("update:modelValue", value);
     },
     countLines(textarea) {
       let _buffer;

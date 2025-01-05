@@ -45,10 +45,12 @@
       display: flex;
       flex-flow: row nowrap;
       justify-content: space-between;
+      align-items: center;
       padding: var(--gap-sm);
 
       h3 {
         margin: 0;
+        height: fit-content;
       }
     }
 
@@ -62,7 +64,7 @@
     display: flex;
     flex-flow: row nowrap;
     align-items: center;
-    gap: var(--gap-md);
+    gap: var(--gap-md); 
     overflow: auto;
 
     .embed-editable {
@@ -70,7 +72,7 @@
       flex-flow: column nowrap;
       gap: var(--gap-sm);
       border-radius: var(--radius-md);
-      padding: var(--gap-sm);
+      padding: var(--gap-md);
       margin-bottom: var(--gap-md);
       background-color: var(--highlighted-foreground-color);
 
@@ -100,6 +102,7 @@
 
       .embed-anchor {
         margin-top: var(--gap-sm);
+        padding-top: var(--gap-md);
         margin-bottom: 2px;
       }
 
@@ -115,10 +118,9 @@
       .editable-footer {
         display: grid;
         gap: var(--gap-sm);
-        padding: var(--gap-sm);
-        padding-top: 0;
+        padding: var(--gap-md);
         border-radius: var(--radius-sm);
-        background-color: var(--background-color);
+        background-color: var(--alternate-foreground-color);
       }
 
       .editable-footer {
@@ -129,6 +131,7 @@
       }
       .editable-author {
         grid-template-columns: 1fr 1fr;
+
         & > *:last-child {
           grid-column: span 2;
         }
@@ -147,14 +150,32 @@
       }
 
       .footer-timestamp {
+        display: grid;
+        grid-template-columns: auto 40px;
+        gap: var(--gap-sm);
+
+        label {
+          grid-column: 1 / span 2;
+        }
         input {
           display: inline-block;
-          width: calc(100% - 40px - var(--gap-sm));
+          padding-top: var(--gap-md);
+          width: 100%;
         }
         button {
           display: inline-block;
           max-width: 40px;
           margin-left: var(--gap-sm);
+        }
+      }
+
+      .footer-icon-url {
+        display: flex;
+        flex-flow: column nowrap;
+        gap: var(--gap-sm);
+
+        input {
+          height: 100%;
         }
       }
 
@@ -168,9 +189,9 @@
       width: 100%;
       height: 100%;
       overflow: auto;
+      padding: var(--gap-md);
 
       background-color: var(--background-color);
-      padding: var(--gap-sm);
       border-radius: var(--radius-md);
     }
 
@@ -196,6 +217,7 @@
     textarea {
       max-width: 100% !important;
       min-width: 100% !important;
+      min-height: 3em;
       resize: vertical !important;
     }
 
@@ -238,7 +260,7 @@
         <span class="header-separator">|</span>
         <div class="header-preview">
           <h3 style="margin-left: var(--gap-lg)">Embed preview</h3>
-          <Button @click="addEmbedsToMessage">Add to message</Button>
+          <Button color="primary" @click="addEmbedsToMessage">Add to message</Button>
         </div>
       </div>
       <div class="embed-editor-holder">
@@ -594,9 +616,9 @@
 
           <!-- MARK: Navigation actions -->
           <div class="navigation">
-            <Button @click="addNewEmbed">Add Embed</Button>
-            <Button>Add Component</Button>
-            <Button @click="layout.showJsonEditor = !layout.showJsonEditor">
+            <Button @click="addNewEmbed" color="secondary">Add Embed</Button>
+            <Button disabled>Add Component</Button>
+            <Button @click="layout.showJsonEditor = !layout.showJsonEditor" :color="layout.showJsonEditor ? 'secondary' : 'default'">
               Json Editor
             </Button>
           </div>

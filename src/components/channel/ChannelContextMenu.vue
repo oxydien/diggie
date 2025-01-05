@@ -4,19 +4,23 @@
   display: flex;
   flex-flow: column nowrap;
   gap: var(--gap-sm);
-  background: var(--button-color-muted);
+  background: var(--background-color);
   color: var(--text-color);
   padding: var(--gap-md);
   border-radius: var(--radius-md);
   box-shadow: 0 0 2px 0 black;
   z-index: 958;
 
+  strong {
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
+    gap: var(--gap-sm);
+    margin-bottom: var(--gap-md);
+  }
+
   .channel-context {
     position: relative;
-    background-color: var(--button-color);
-    border-radius: var(--radius-sm);
-    padding: 3px;
-    cursor: pointer;
     user-select: none;
     font-weight: 600;
 
@@ -27,33 +31,37 @@
       justify-content: space-between;
       align-items: center;
     }
-
-    &:hover {
-      color: var(--text-highlight-color);
-      background-color: var(--primary-color);
-      text-shadow: 0 0 2px black;
-    }
   }
 }
 </style>
 
 <template>
   <div class="channel-context-wrapper">
-    <span>{{ channel.name }}</span>
+    <strong><AutoChannelIcon :channelType="channel.type" /> {{ channel.name }}</strong>
     <div class="channel-context edit">
-      <div class="menu-button" @click="handleEdit"><span>Edit channel</span> <EditIcon /></div>
+      <div class="menu-button btn btn-secondary" ref="firstButton" @click="handleEdit" tabindex="0"><span>Edit channel</span>
+        <EditIcon />
+      </div>
     </div>
     <div class="channel-context duplicate">
-      <div class="menu-button" @click="handleDuplicateChannel"><span>Duplicate channel</span> <CopyIcon /></div>
+      <div class="menu-button btn" @click="handleDuplicateChannel" tabindex="0"><span>Duplicate channel</span>
+        <CopyIcon />
+      </div>
     </div>
     <div class="channel-context copy-link">
-      <div class="menu-button" @click="handleCopyLink"><span>Copy channel link</span> <LinkIcon /></div>
+      <div class="menu-button btn" @click="handleCopyLink" tabindex="0"><span>Copy channel link</span>
+        <LinkIcon />
+      </div>
     </div>
     <div class="channel-context copy-id">
-      <div class="menu-button" @click="handleCopyId"><span>Copy channel ID</span> <IdIcon /></div>
+      <div class="menu-button btn" @click="handleCopyId" tabindex="0"><span>Copy channel ID</span>
+        <IdIcon />
+      </div>
     </div>
     <div class="channel-context delete">
-      <div class="menu-button" @click="handleDeleteChannel"><span>Delete channel</span> <DeleteIcon /></div>
+      <div class="menu-button btn btn-destructive" @click="handleDeleteChannel" tabindex="0"><span>Delete channel</span>
+        <DeleteIcon />
+      </div>
     </div>
   </div>
 </template>
@@ -64,12 +72,15 @@ import DeleteIcon from "../icons/DeleteIcon.vue";
 import IdIcon from "../icons/IdIcon.vue";
 import LinkIcon from "../icons/LinkIcon.vue";
 import CopyIcon from "../icons/CopyIcon.vue";
+import AutoChannelIcon from "../icons/AutoChannelIcon.vue";
 import { useAppStore } from "../../stores/app";
 import { invoke } from "@tauri-apps/api/core";
+import { handleNotification } from "../../core/notifications/notificationHandler";
+import { Notification } from "../../core/notifications/notification";
 
 export default {
   name: "ChannelContextMenu",
-  components: { EditIcon, DeleteIcon, IdIcon, LinkIcon, CopyIcon },
+  components: { AutoChannelIcon, EditIcon, DeleteIcon, IdIcon, LinkIcon, CopyIcon },
   data() {
     return {
       apx: useAppStore(),
@@ -86,6 +97,12 @@ export default {
     },
   },
   emits: ["close", "edit"],
+  mounted() {
+    // Focus the first button
+    this.$nextTick(() => {
+      this.$refs.firstButton?.focus();
+    });
+  },
   methods: {
     handleEdit() {
       this.editCallback();
@@ -115,8 +132,15 @@ export default {
         .then((response) => console.log(response))
         .catch((e) => {
           console.error("Error while duplicating channel", e);
+          handleNotification(Notification.from_json({
+            title: "Error",
+            message: "Error while duplicating channel",
+            type: "error",
+            code: e,
+            duration: 5
+          }))
         })
-        .finally(() => (this.apx.buffer.editingChannel = false));
+        .finally(() => { this.apx.buffer.editingChannel = false });
     },
     handleDeleteChannel() {
       invoke("delete_discord_channel", { channelId: this.channel.id })
@@ -125,6 +149,13 @@ export default {
         })
         .catch((e) => {
           console.error("Couldn't remove channel:", e);
+          handleNotification(Notification.from_json({
+            title: "Error",
+            message: "Couldn't remove channel",
+            type: "error",
+            code: e,
+            duration: 5
+          }))
         });
     },
     remove() {

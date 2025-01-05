@@ -2,7 +2,7 @@ use serenity::all::{ChannelId, MessageId, ReactionType};
 
 use super::DISCORD_CONTEXT;
 
-pub async fn add_reaction(channel_id: u64, message_id: u64, reaction: &str) -> Result<(), String> {
+pub async fn add_reaction(channel_id: u64, message_id: u64, reaction: &str) -> Result<(), (String, String)> {
     let channel = ChannelId::new(channel_id);
     let message = MessageId::new(message_id);
     let mut ctx = DISCORD_CONTEXT.lock().await;
@@ -16,7 +16,7 @@ pub async fn add_reaction(channel_id: u64, message_id: u64, reaction: &str) -> R
         .await
     {
         Ok(_) => Ok(()),
-        Err(_) => Err(String::from("Could not create reaction")),
+        Err(e) => Err((String::from("Could not create reaction"), e.to_string())),
     }
 }
 
@@ -24,7 +24,7 @@ pub async fn remove_reaction(
     channel_id: u64,
     message_id: u64,
     reaction: &str,
-) -> Result<(), String> {
+) -> Result<(), (String, String)> {
     let channel = ChannelId::new(channel_id);
     let message = MessageId::new(message_id);
     let mut ctx = DISCORD_CONTEXT.lock().await;
@@ -38,6 +38,6 @@ pub async fn remove_reaction(
         .await
     {
         Ok(_) => Ok(()),
-        Err(_) => Err(String::from("Could not delete reaction")),
+        Err(e) => Err((String::from("Could not delete reaction"), e.to_string())),
     }
 }

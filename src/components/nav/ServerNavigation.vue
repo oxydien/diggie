@@ -2,14 +2,15 @@
 .server-nav {
   position: relative;
   height: 100%;
-  width: 60px;
+  width: var(--_leftNavWidth);
   display: flex;
   flex-flow: column nowrap;
+  gap: var(--gap-sm);
+  align-items: center;
   background-color: var(--foreground-color);
   border-radius: var(--radius-md);
   padding: var(--gap-sm);
   scrollbar-width: 0;
-  overflow-y: clip;
 
   &::-webkit-scrollbar {
     display: none;
@@ -17,13 +18,13 @@
 }
 
 .server {
-  --_serverSize: 48px;
+  --_serverSize: var(--_itemSize);
   position: relative;
   height: var(--_serverSize);
-  aspect-ratio: 1/1;
+  width: var(--_serverSize);
   transition: all 120ms;
   background-color: var(--button-color-muted);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
 
   cursor: pointer;
 
@@ -55,6 +56,7 @@
   }
 
   &.active {
+    background-color: var(--primary-dark-color);
     outline: 2px solid var(--primary-muted-color);
   }
 

@@ -81,3 +81,37 @@ export async function sendRawEditMessage(channelId, messageId, data) {
 			useAppStore().buffer.sendingMessage = false;
 		});
 }
+
+// Reactions
+
+export async function tryAddReaction(channelId, messageId, unicode) {
+	const request = {
+		channelId: channelId,
+		messageId: messageId,
+		emoji: unicode,
+	};
+	console.log("Adding reaction", request);
+	invoke("discord_create_reaction", request)
+		.then((data) => {
+			console.log("[discord_create_reaction] success", data);
+		})
+		.catch((err) => {
+			console.error("[discord_create_reaction] failed", err);
+		});
+}
+
+export async function tryRemoveReaction(channelId, messageId, unicode) {
+	const request = {
+		channelId: channelId,
+		messageId: messageId,
+		emoji: unicode,
+	};
+	console.log("Removing reaction", request);
+	invoke("discord_delete_reaction", request)
+		.then((data) => {
+			console.log("[discord_delete_reaction] success", data);
+		})
+		.catch((err) => {
+			console.error("[discord_delete_reaction] failed", err);
+		});
+}

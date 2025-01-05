@@ -16,6 +16,16 @@ pub async fn get_channels(guild_id: u64) -> Result<Vec<GuildChannel>, String> {
     }
 }
 
+pub async fn get_channel_info(channel_id: u64) -> Result<Channel, String> {
+    let mut ctx = DISCORD_CONTEXT.lock().await;
+    let channel = ChannelId::new(channel_id);
+
+    match ctx.as_mut().unwrap().http.get_channel(channel).await {
+        Ok(data) => Ok(data),
+        Err(_) => Err(String::from("Couldn't get channel info")),
+    }
+}
+
 pub async fn get_direct_channels() -> Result<Vec<PrivateChannel>, String> {
     let mut ctx = DISCORD_CONTEXT.lock().await;
 

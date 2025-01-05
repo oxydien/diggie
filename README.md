@@ -72,5 +72,6 @@ if any issues with running the application, try
 ```sh
 export WEBKIT_DISABLE_COMPOSITING_MODE=1
 export WEBKIT_DISABLE_DMABUF_RENDERER=1
+export NO_STRIP=true
 ```
 or [open an issue](https://github.com/oxydien/diggie/issues).

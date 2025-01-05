@@ -20,6 +20,7 @@
       padding-top: calc(var(--gap-md) * 2);
     }
   }
+
   &.deleted {
     color: red;
   }
@@ -32,6 +33,7 @@
 .profile-holder {
   position: absolute;
   left: var(--gap-md);
+
   img {
     height: 40px;
     width: 40px;
@@ -68,25 +70,15 @@
   }
 }
 
-.message-attachments {
-  img,
-  video {
-    width: 30vw;
-  }
-}
-
 .message-reactions {
   width: 100%;
   display: flex;
   flex-flow: row wrap;
+
   .reaction {
     width: fit-content;
-    display: flex;
-    flex-flow: row nowrap;
-    align-items: center;
     gap: var(--gap-sm);
-    border-radius: var(--radius-sm);
-    padding: var(--gap-sm);
+    padding: var(--gap-sm) var(--gap-md);
     border: 2px solid var(--button-color);
 
     &.reacted {
@@ -97,18 +89,13 @@
 </style>
 
 <template>
-  <div
-    class="message-holder"
-    :class="{
-      'has-reply': message.message_reference,
-      replying: message.id === apx.data.textInput.replyingTo,
-      editing: message.id === apx.data.textInput.editing,
-      connected: ShouldConnectToPrevious,
-      deleted: message.deleted,
-    }"
-    :id="message.id"
-    @contextmenu="showContextMenu($event, message)"
-  >
+  <div class="message-holder" :class="{
+    'has-reply': message.message_reference,
+    replying: message.id === apx.data.textInput.replyingTo,
+    editing: message.id === apx.data.textInput.editing,
+    connected: ShouldConnectToPrevious,
+    deleted: message.deleted,
+  }" :id="message.id" @contextmenu="showContextMenu($event, message)">
     <Reply :message_reference="findReply(message)" :message="message" />
     <div class="profile-holder" v-if="!ShouldConnectToPrevious">
       <Avatar :src="`https://cdn.discordapp.com/avatars/${message.author.id}/${message.author.avatar}.webp?size=40`" />
@@ -120,7 +107,9 @@
         <span class="edited" v-if="message.edited_timestamp">Edited!</span>
       </div>
       <div class="message-content">
-        <span v-if="message.type === 7"><ReplyIcon />Joined</span>
+        <span v-if="message.type === 7">
+          <ReplyIcon />Joined
+        </span>
         <MarkdownParser @loaded="handleMarkdownLoad" v-else :markdown="message.content" />
         <div class="message-raw">{{ message }}</div>
       </div>
@@ -129,24 +118,20 @@
           <StickerItem :sticker="sticker" />
         </div>
       </div>
-      <MessagePoll :poll="message.poll"/>
-      <div class="message-embeds">
+      <MessagePoll :poll="message.poll" />
+      <div class="message-embeds" v-if="message.embeds && message.embeds.length > 0">
         <div class="embed-wrapper" v-for="embed in message.embeds">
           <Embed :embed="embed" />
         </div>
       </div>
       <div class="message-attachments">
-        <div class="attachment" v-for="file in message.attachments" @contextmenu.capture="attachmentContextMenu($event, file)">
-          <img :src="file.url" v-if="file.content_type.includes('image')" />
-          <video :src="file.url" controls v-else-if="file.content_type.includes('video')" v-observe-visibility></video>
-          <span v-else>{{ file }}</span>
-        </div>
+        <MessageAttachment v-for="file in message.attachments" :file="file" />
       </div>
       <div class="message-reactions">
-        <div class="reaction" :class="{ reacted: reaction.me }" v-for="reaction in message.reactions">
+        <Button class="reaction" :class="{ reacted: reaction.me || reaction.user_id === apx.user.id }" v-for="reaction in message.reactions" @click="toggleReaction(reaction)">
           <strong v-html="translateEmoji(reaction.emoji.name)"> </strong>
           <span> {{ reaction.count }}</span>
-        </div>
+        </Button>
       </div>
     </div>
   </div>
@@ -160,145 +145,160 @@ import ReplyIcon from "../icons/ReplyIcon.vue";
 import Embed from "./Embed.vue";
 import MarkdownParser from "./MarkdownParser.vue";
 import twemoji from "twemoji";
-import StickerItem from "./StickerItem.vue";
+import StickerItem from "./Sticker.vue";
 import Avatar from "../base/Avatar.vue";
 import MessagePoll from "./MessagePoll.vue";
+import MessageAttachment from "./attachments/MessageAttachment.vue";
+import { tryAddReaction, tryRemoveReaction } from "../../core/discord/messages.js";
+import Button from "../base/Button.vue";
 
 export default {
-	components: {
-		Reply,
-		Embed,
-		MarkdownParser,
-		ReplyIcon,
-		StickerItem,
-		Avatar,
-		MessagePoll,
-	},
-	data() {
-		return {
-			apx: useAppStore(),
-			ignoredElementIds: ["emojiPickerInputBox"],
-		};
-	},
-	props: {
-		message: {
-			type: Object,
-			required: true,
-		},
-		previousMessage: {
-			type: Object,
-			default: null,
-		},
-		ignoreContextMenu: {
-			type: Boolean,
-			default: false,
-		},
-	},
-	emits: ["loaded"],
-	methods: {
-		handleMarkdownLoad() {
-			this.$emit("loaded");
-		},
-    attachmentContextMenu(event, attachment) {
-      event.stopPropagation();
+  components: {
+    Reply,
+    Embed,
+    MarkdownParser,
+    ReplyIcon,
+    StickerItem,
+    Avatar,
+    MessagePoll,
+    Button,
+    MessageAttachment,
+  },
+  data() {
+    return {
+      apx: useAppStore(),
+      ignoredElementIds: ["emojiPickerInputBox"],
+    };
+  },
+  props: {
+    message: {
+      type: Object,
+      required: true,
     },
-		async showContextMenu(event, message) {
-			if (this.ignoreContextMenu === true) return;
-			event.preventDefault(); // Prevent default right-click menu
+    previousMessage: {
+      type: Object,
+      default: null,
+    },
+    ignoreContextMenu: {
+      type: Boolean,
+      default: false,
+    },
+  },
+  emits: ["loaded"],
+  methods: {
+    handleMarkdownLoad() {
+      this.$emit("loaded");
+    },
+    async showContextMenu(event, message) {
+      if (this.ignoreContextMenu === true) return;
+      event.preventDefault(); // Prevent default right-click menu
 
-			if (this.apx.data.currentMessageContextMenu) {
-				this.apx.data.currentMessageContextMenu.remove();
-			}
+      if (this.apx.data.currentMessageContextMenu) {
+        this.apx.data.currentMessageContextMenu.remove();
+      }
 
-			const loadAndMountComponent = async () => {
-				const { default: MessageContextMenu } = await import(
-					"./MessageContextMenu.vue"
-				);
-				const contextMenu = createApp(MessageContextMenu, {
-					message: message,
-				}).mount(document.createElement("div"));
+      const loadAndMountComponent = async () => {
+        const { default: MessageContextMenu } = await import(
+          "./MessageContextMenu.vue"
+        );
+        const contextMenu = createApp(MessageContextMenu, {
+          message: message,
+        }).mount(document.createElement("div"));
 
-				// Position the context menu
-				contextMenu.$el.style.right = "var(--gap-md)";
-				contextMenu.$el.style.top = "var(--gap-md)";
+        // Position the context menu
+        contextMenu.$el.style.right = "var(--gap-md)";
+        contextMenu.$el.style.top = "var(--gap-md)";
 
-				// Append the context menu to the body
-				this.$el.appendChild(contextMenu.$el);
+        // Append the context menu to the body
+        this.$el.appendChild(contextMenu.$el);
 
-				window.addEventListener("click", this.hideContextMenu, { once: true });
+        window.addEventListener("click", this.hideContextMenu, { once: true });
 
-				this.apx.data.currentMessageContextMenu = contextMenu.$el;
-			};
+        this.apx.data.currentMessageContextMenu = contextMenu.$el;
+      };
 
-			await loadAndMountComponent();
-		},
-		hideContextMenu(event) {
-			if (
-				event &&
-				(this.ignoredElementIds.includes(event.target.id) ||
-					this.isTargetInside(
-						event.target,
-						this.apx.data.currentMessageContextMenu,
-					))
-			) {
-				window.addEventListener("click", this.hideContextMenu, { once: true });
-				return;
-			}
+      await loadAndMountComponent();
+    },
+    hideContextMenu(event) {
+      if (
+        event &&
+        (this.ignoredElementIds.includes(event.target.id) ||
+          this.isTargetInside(
+            event.target,
+            this.apx.data.currentMessageContextMenu,
+          ))
+      ) {
+        window.addEventListener("click", this.hideContextMenu, { once: true });
+        return;
+      }
 
-			if (this.apx.data.currentMessageContextMenu) {
-				this.apx.data.currentMessageContextMenu.remove();
-				this.apx.data.currentMessageContextMenu = null;
-			}
-		},
-		translateEmoji(data) {
-			return twemoji.parse(data, {
-				base: "https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/",
-			});
-		},
-		translateDate(timestamp) {
-			const now = Date.now();
-			const date = new Date(timestamp);
-			const diffInSeconds = (now - date.getTime()) / 1000;
-			if (diffInSeconds > 86400) {
-				return new Date(timestamp).toLocaleDateString();
-			}
-			return new Date(timestamp).toLocaleTimeString();
-		},
-		isTargetInside(target, parent) {
-			if (parent.contains(target)) {
-				return true;
-			}
-			for (let i = 0; i < parent.children.length; i++) {
-				if (this.isTargetInside(target, parent.children[i])) {
-					return true;
-				}
-			}
-			return false;
-		},
-		findReply(message) {
-			if (message.message_reference) {
-				return this.apx.data.messages.find(
-					(msg) => msg.id === message.message_reference.message_id,
-				);
-			}
-			return null;
-		},
-	},
-	computed: {
-		ShouldConnectToPrevious() {
-			if (
-				this.previousMessage &&
-				!this.message.message_reference &&
-				!this.previousMessage.message_reference &&
-				this.previousMessage.author.id === this.message.author.id &&
-				new Date(this.message.timestamp).getTime() -
-					new Date(this.previousMessage.timestamp).getTime() <
-					34000
-			) {
-				return true;
-			}
-			return false;
-		},
-	},
+      if (this.apx.data.currentMessageContextMenu) {
+        this.apx.data.currentMessageContextMenu.remove();
+        this.apx.data.currentMessageContextMenu = null;
+      }
+    },
+    translateEmoji(data) {
+      return twemoji.parse(data, {
+        base: "https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/",
+      });
+    },
+    translateDate(timestamp) {
+      const now = Date.now();
+      const date = new Date(timestamp);
+      const diffInSeconds = (now - date.getTime()) / 1000;
+      if (diffInSeconds > 86400) {
+        return new Date(timestamp).toLocaleDateString();
+      }
+      return new Date(timestamp).toLocaleTimeString();
+    },
+    isTargetInside(target, parent) {
+      if (!parent) {
+        return false;
+      }
+      if (parent.contains(target)) {
+        return true;
+      }
+      for (let i = 0; i < parent.children.length; i++) {
+        if (this.isTargetInside(target, parent.children[i])) {
+          return true;
+        }
+      }
+      return false;
+    },
+    findReply(message) {
+      if (message.message_reference) {
+        return this.apx.data.messages.find(
+          (msg) => msg.id === message.message_reference.message_id,
+        );
+      }
+      return null;
+    },
+    toggleReaction(reaction) {
+      if (reaction.me) {
+        tryRemoveReaction(this.message.channel_id, this.message.id, reaction.emoji.name);
+      } else {
+        tryAddReaction(this.message.channel_id, this.message.id, reaction.emoji.name);
+      }
+    }
+  },
+  computed: {
+    ShouldConnectToPrevious() {
+      if (
+        this.previousMessage &&
+        !this.message.message_reference &&
+        !this.previousMessage.message_reference &&
+        this.previousMessage.author.id === this.message.author.id &&
+        new Date(this.message.timestamp).getTime() -
+        new Date(this.previousMessage.timestamp).getTime() <
+        34000
+      ) {
+        return true;
+      }
+      return false;
+    },
+    isVideoAllowed() {
+      return useAppStore().utils.clientSettings?.render_videos ?? true;
+    }
+  },
 };
 </script>

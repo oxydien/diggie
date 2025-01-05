@@ -17,6 +17,10 @@
     color: var(--text-color-highlighted);
   }
 
+  &::placeholder {
+    color: var(--text-color-muted);
+  }
+
   &.right-icon {
     flex-flow: row-reverse nowrap;
   }

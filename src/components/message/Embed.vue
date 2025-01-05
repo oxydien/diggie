@@ -70,6 +70,7 @@
 .embed-video-container,
 .embed-gif-container,
 .embed-image-container {
+
   img,
   video {
     max-width: min(100%, 30vw) !important;
@@ -85,8 +86,8 @@
 .embed-video {
   width: fit-content;
   height: fit-content;
-  max-width: fit-content;
-  max-height: fit-content;
+  max-width: 100%;
+  max-height: 100%;
 
   position: relative;
 
@@ -94,7 +95,8 @@
   transition: all 200ms;
   overflow: hidden;
 
-  video, iframe {
+  video,
+  iframe {
     width: 100% !important;
     height: unset !important;
   }
@@ -104,6 +106,16 @@ img,
 video {
   max-width: 30vw !important;
   max-height: 35vh !important;
+}
+
+.video-warn,
+.gif-image-warn {
+  color: #e67e34;
+  font-weight: 600;
+  font-style: italic;
+  margin: var(--gap-sm);
+  white-space: pre-wrap;
+  word-wrap: break-word;
 }
 </style>
 
@@ -115,55 +127,41 @@ video {
     <img :src="embed.thumbnail.url" class="gif-image" />
   </div>
   <div class="embed-gif-container" v-else-if="embed.type === 'gifv'">
-    <video :src="embed.video.url" controls autoplay muted loop class="gif-image" v-observe-visibility></video>
+    <video v-if="isVideoAllowed" :src="embed.video.url" controls autoplay muted loop class="gif-image"
+      v-observe-visibility></video>
+    <p v-else class="gif-image-warn">Video not allowed: {{ embed.video.url }}</p>
   </div>
-  <div
-    class="embed-container"
-    v-else
-    :style="`border-left: 5px solid #${embed.color || embed.color === 0 ? embed.color.toString(16) : ''}`"
-  >
+  <div class="embed-container" v-else
+    :style="`border-left: 5px solid #${embed.color || embed.color === 0 ? embed.color.toString(16) : ''}`">
     <div v-if="embed.author" class="embed-author">
-      <img
-        v-if="embed.author.icon_url != ''"
-        :src="embed.author.icon_url"
-        :alt="`${embed.author.name}'s icon`"
-        class="author-icon"
-      />
+      <img v-if="embed.author.icon_url != ''" :src="embed.author.icon_url" :alt="`${embed.author.name}'s icon`"
+        class="author-icon" />
       <span class="author-name" v-if="embed.author.url == ''">{{ embed.author.name }}</span>
       <a class="author-name" v-else :href="embed.author.url">{{ embed.author.name }}</a>
     </div>
-    <img
-      v-if="embed.thumbnail && embed.thumbnail.url != ''"
-      class="embed-thumbnail"
-      :src="embed.thumbnail.url"
-      width="80"
-      @click="fullImage(embedThumbnailImg)"
-    />
+    <img v-if="embed.thumbnail && embed.thumbnail.url != ''" class="embed-thumbnail" :src="embed.thumbnail.url"
+      width="80" @click="fullImage(embedThumbnailImg)" />
     <div class="embed-title" v-if="embed.title">
       <h3>{{ embed.title }}</h3>
     </div>
-    <div v-if="embed.description" class="embed-description"><MarkdownParser :markdown="embed.description" /></div>
-    <div
-      v-if="embed.fields && embed.fields.length > 0"
-      class="embed-field-container"
-      :class="{ 'embed-field-inline': field.inline }"
-      v-for="field in embed.fields"
-      :key="field.name"
-    >
-      <h4><MarkdownParser :markdown="field.name" /></h4>
-      <span><MarkdownParser :markdown="field.value" /></span>
+    <div v-if="embed.description" class="embed-description">
+      <MarkdownParser :markdown="embed.description" />
+    </div>
+    <div v-if="embed.fields && embed.fields.length > 0" class="embed-field-container"
+      :class="{ 'embed-field-inline': field.inline }" v-for="field in embed.fields" :key="field.name">
+      <h4>
+        <MarkdownParser :markdown="field.name" />
+      </h4>
+      <span>
+        <MarkdownParser :markdown="field.value" />
+      </span>
     </div>
     <div v-if="embed.image && embed.image.url != ''" class="embed-image-container">
       <img :src="embed.image.url" />
     </div>
-    <div v-if="embed.video" class="embed-video">
-      <iframe
-        v-if="embed.video.url.startsWith('https://www.youtube.com/embed/')"
-        :src="embed.video.url"
-        frameborder="0"
-        allowfullscreen="1"
-        class="video"
-      ></iframe>
+    <div v-if="embed.video && embed.video.url != ''" class="embed-video">
+      <YoutubeEmbed v-if="embed.video.url.startsWith('https://www.youtube.com/embed/')" :embedUrl="embed.video.url" />
+      
       <div v-else class="video-holder">
         <div class="video-timeline-holder">
           <div class="video-timeline"></div>
@@ -171,7 +169,8 @@ video {
         </div>
         <div class="video-maximize"></div>
         <div class="video-play"></div>
-        <video :src="embed.video.url" controls class="video" v-observe-visibility></video>
+        <video v-if="isVideoAllowed" :src="embed.video.url" controls class="video" v-observe-visibility></video>
+        <p v-else class="video-warn">Video not allowed: {{ embed.video.url }}</p>
       </div>
     </div>
     <div v-if="embed.footer && embed.footer.text" class="embed-footer">
@@ -179,23 +178,32 @@ video {
       <span class="embed-footer-text">{{ embed.footer.text }}</span>
       <span class="embed-footer-timestamp" v-if="embed.timestamp">{{
         new Date(embed.timestamp).toLocaleTimeString()
-      }}</span>
+        }}</span>
     </div>
   </div>
 </template>
 
 <script>
 import MarkdownParser from "./MarkdownParser.vue";
+import YoutubeEmbed from "./embeds/YoutubeEmbed.vue";
+import {
+  useAppStore
+} from "../../stores/app";
 
 export default {
-	components: { MarkdownParser },
-	props: {
-		embed: Object,
-	},
-	methods: {
-		fullImage(embedThumbnailImg) {
-			// Implement fullImage function
-		},
-	},
+  components: { MarkdownParser, YoutubeEmbed },
+  props: {
+    embed: Object,
+  },
+  methods: {
+    fullImage(embedThumbnailImg) {
+      // Implement fullImage function
+    },
+  },
+  computed: {
+    isVideoAllowed() {
+      return useAppStore().utils.clientSettings?.render_videos ?? true;
+    }
+  }
 };
 </script>

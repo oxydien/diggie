@@ -10,14 +10,30 @@
   border-radius: var(--radius-md);
   z-index: 957;
 
-  .message-context {
-    position: relative;
+  .favorite-emojis {
+    display: flex;
+    flex-flow: row;
+    gap: var(--gap-sm);
+    margin-bottom: var(--gap-sm);
+
+    .emoji {
+      min-height: 30px;
+    }
+  }
+
+  .hr {
+    width: 100%;
+    height: 3px;
     background-color: var(--button-color);
     border-radius: var(--radius-sm);
-    padding: 3px;
-    cursor: pointer;
+    margin-block: var(--gap-sm);
+  }
+
+  .message-context {
+    position: relative;
     user-select: none;
     font-weight: 600;
+
 
     .menu-button {
       display: flex;
@@ -25,18 +41,14 @@
       gap: var(--gap-md);
       justify-content: space-between;
       align-items: center;
-    }
-
-    &:hover {
-      color: var(--text-highlight-color);
-      background-color: var(--primary-color);
-      text-shadow: 0 0 2px black;
+      width: 100%;
     }
 
     &.reaction {
       .reaction-emoji-picker {
         position: absolute;
-        right: 100%;
+        top: 0;
+        right: calc(100% + var(--gap-md));
       }
     }
   }
@@ -45,42 +57,68 @@
 
 <template>
   <div class="message-context-wrapper">
-    <span>{{ message.author.username }}</span>
-    <div class="message-context reaction">
-      <div class="menu-button" @click="showEmojiPicker = !showEmojiPicker">
-        <span>Add Reaction</span> <ReactionEmojiIcon />
+    <div class="favorite-emojis" v-if="favoriteEmojis?.length">
+      <Button class="emoji" v-for="emoji in favoriteEmojis" @click="addReaction(emoji)" :key="emoji">
+        <span>{{ emoji }}</span>
+      </Button>
+    </div>
+    <div class="message-context reaction btn" @click="showEmojiPicker = !showEmojiPicker"
+      @keydown.enter="showEmojiPicker = !showEmojiPicker" tabindex="0">
+      <div class="menu-button">
+        <span>Add Reaction</span>
+        <ReactionEmojiIcon />
       </div>
       <div class="reaction-emoji-picker">
         <EmojiPicker v-if="showEmojiPicker" @picked="handleEmojiPicked" />
       </div>
     </div>
-    <div class="message-context pin">
-      <div class="menu-button"><span>Pin Message</span> <PinIcon /></div>
+    <div class="message-context reply btn btn-secondary" tabindex="0" @click="handleReplyButton"
+      @keydown.enter="handleReplyButton" ref="firstButton">
+      <div class="menu-button"><span>Reply</span>
+        <ReplyIcon />
+      </div>
     </div>
-    <div
-      class="message-context copy-text"
-      v-if="apx.user && apx.user.id == message.author.id"
-      @click="handleEditButton"
-    >
-      <div class="menu-button"><span>Edit message</span> <EditIcon /></div>
+    <div class="message-context edit btn" tabindex="0" v-if="apx.user && apx.user.id == message.author.id"
+      @click="handleEditButton" @keydown.enter="handleEditButton">
+      <div class="menu-button"><span>Edit message</span>
+        <EditIcon />
+      </div>
     </div>
-    <div class="message-context copy-text" @click="handleCopyTextButton">
-      <div class="menu-button"><span>Copy Text</span> <CopyIcon /></div>
+    <div class="message-context pin btn disabled" tabindex="0">
+      <div class="menu-button"><span>Pin Message</span>
+        <PinIcon />
+      </div>
     </div>
-    <div class="message-context copy-link" @click="handleCopyLinkButton">
-      <div class="menu-button"><span>Copy Message Link</span> <LinkIcon /></div>
+    <div class="hr"></div>
+    <div class="message-context copy-text btn" tabindex="0" @click="handleCopyTextButton"
+      @keydown.enter="handleCopyTextButton">
+      <div class="menu-button"><span>Copy Text</span>
+        <CopyIcon />
+      </div>
     </div>
-    <div class="message-context reply" @click="handleReplyButton">
-      <div class="menu-button"><span>Reply</span> <ReplyIcon /></div>
+    <div class="message-context copy-link btn" tabindex="0" @click="handleCopyLinkButton"
+      @keydown.enter="handleCopyLinkButton">
+      <div class="menu-button"><span>Copy Message Link</span>
+        <LinkIcon />
+      </div>
     </div>
-    <div class="message-context copy-raw" @click="handleCopyRawButton">
-      <div class="menu-button"><span>Copy Raw Message</span> <CopyCodeIcon /></div>
+    <div class="message-context copy-raw btn" tabindex="0" @click="handleCopyRawButton"
+      @keydown.enter="handleCopyRawButton">
+      <div class="menu-button"><span>Copy Raw Message</span>
+        <CopyCodeIcon />
+      </div>
     </div>
-    <div class="message-context delete" @click="handleDeleteButton">
-      <div class="menu-button"><span>Delete Message</span> <DeleteIcon /></div>
+    <div class="message-context copy-id btn" tabindex="0" @click="handleCopyIdButton"
+      @keydown.enter="handleCopyIdButton">
+      <div class="menu-button"><span>Copy Message ID</span>
+        <IdIcon />
+      </div>
     </div>
-    <div class="message-context copy-id" @click="handleCopyIdButton">
-      <div class="menu-button"><span>Copy Message ID</span> <IdIcon /></div>
+    <div class="hr"></div>
+    <div class="message-context delete btn btn-destructive" tabindex="0" @click="handleDeleteButton">
+      <div class="menu-button"><span>Delete Message</span>
+        <DeleteIcon />
+      </div>
     </div>
   </div>
 </template>
@@ -96,12 +134,26 @@ import DeleteIcon from "../icons/DeleteIcon.vue";
 import EditIcon from "../icons/EditIcon.vue";
 import IdIcon from "../icons/IdIcon.vue";
 import EmojiPicker from "../EmojiPicker.vue";
+import Button from "../base/Button.vue";
 import { useAppStore } from "../../stores/app";
 import { invoke } from "@tauri-apps/api/core";
+import { tryAddReaction } from "../../core/discord/messages";
 
 export default {
   name: "MessageContextMenu",
-  components: { ReactionEmojiIcon, PinIcon, CopyIcon, LinkIcon, ReplyIcon, DeleteIcon, IdIcon, EditIcon, EmojiPicker, CopyCodeIcon },
+  components: {
+    ReactionEmojiIcon,
+    Button,
+    PinIcon,
+    CopyIcon,
+    LinkIcon,
+    ReplyIcon,
+    DeleteIcon,
+    IdIcon,
+    EditIcon,
+    EmojiPicker,
+    CopyCodeIcon,
+  },
   data() {
     return {
       apx: useAppStore(),
@@ -115,6 +167,11 @@ export default {
     },
   },
   emits: ["close"],
+  mounted() {
+    this.$nextTick(() => {
+      this.$refs.firstButton?.focus();
+    });
+  },
   methods: {
     handleReplyButton(ev) {
       this.apx.data.textInput.editing = null;
@@ -128,8 +185,12 @@ export default {
     handleEditButton(ev) {
       this.apx.data.textInput.replyingTo = null;
       this.apx.data.textInput.editing = this.message.id;
-      this.apx.data.textInput.message.content = JSON.parse(JSON.stringify(this.message.content));
-      this.apx.data.textInput.message.embeds = JSON.parse(JSON.stringify(this.message.embeds));
+      this.apx.data.textInput.message.content = JSON.parse(
+        JSON.stringify(this.message.content),
+      );
+      this.apx.data.textInput.message.embeds = JSON.parse(
+        JSON.stringify(this.message.embeds),
+      );
       this.remove();
     },
     handleCopyTextButton(ev) {
@@ -142,7 +203,7 @@ export default {
     },
     handleCopyLinkButton(ev) {
       navigator.clipboard.writeText(
-        `https://canary.discord.com/channels/@me/${this.apx.data.currentChannelId}/${this.message.id}`
+        `https://canary.discord.com/channels/@me/${this.apx.data.currentChannelId}/${this.message.id}`,
       );
       this.remove();
     },
@@ -163,23 +224,28 @@ export default {
         });
       this.remove();
     },
-    handleEmojiPicked(ev) {
-      console.log("[MessageContectMenu]", "(handleEmojiPicked)", "DEBUG:", ev);
-      invoke("discord_create_reaction", {
-        channelId: this.apx.data.currentChannelId,
-        messageId: this.message.id,
-        emoji: ev.unicode,
-      })
-        .then((data) => {
-          console.log("[discord_create_reaction]", data);
-        })
-        .catch((err) => {
-          console.error("[discord_create_reaction]", err);
-        });
+    addReaction(unicode) {
+      tryAddReaction(
+        this.apx.data.currentChannelId,
+        this.message.id,
+        unicode,
+      );
+
       this.remove();
+    },
+    handleEmojiPicked(ev) {
+      this.addReaction(ev.unicode);
     },
     remove() {
       this.$el.remove();
+    },
+  },
+  computed: {
+    favoriteEmojis() {
+      const splitEmoji = (string) =>
+        [...new Intl.Segmenter().segment(string)].map((x) => x.segment);
+      const emojisString = this.apx.utils.clientSettings?.favorite_emojis ?? "";
+      return splitEmoji(emojisString);
     },
   },
 };
