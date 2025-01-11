@@ -128,7 +128,7 @@
         <MessageAttachment v-for="file in message.attachments" :file="file" />
       </div>
       <div class="message-reactions">
-        <Button class="reaction" :class="{ reacted: reaction.me || reaction.user_id === apx.user.id }" v-for="reaction in message.reactions" @click="toggleReaction(reaction)">
+        <Button class="reaction" :class="{ reacted: reaction.me || reaction.user_id === apx.user?.id }" v-for="reaction in message.reactions" @click="toggleReaction(reaction)">
           <strong v-html="translateEmoji(reaction.emoji.name)"> </strong>
           <span> {{ reaction.count }}</span>
         </Button>
@@ -139,7 +139,7 @@
 
 <script>
 import { createApp, h } from "vue";
-import { useAppStore } from "../../stores/app.js";
+import { useAppStore } from "../../stores/app.ts";
 import Reply from "./Reply.vue";
 import ReplyIcon from "../icons/ReplyIcon.vue";
 import Embed from "./Embed.vue";
@@ -149,7 +149,7 @@ import StickerItem from "./Sticker.vue";
 import Avatar from "../base/Avatar.vue";
 import MessagePoll from "./MessagePoll.vue";
 import MessageAttachment from "./attachments/MessageAttachment.vue";
-import { tryAddReaction, tryRemoveReaction } from "../../core/discord/messages.js";
+import { tryAddReaction, tryRemoveReaction } from "../../core/discord/messages.ts";
 import Button from "../base/Button.vue";
 
 export default {

@@ -80,7 +80,7 @@
     </div>
     <div class="welcome-wrapper" v-else>
       <h1>
-        Welcome <span>{{ apx.user.username ? apx.user.username : "" }}</span>
+        Welcome <span>{{ apx.user?.username ? apx.user.username : "" }}</span>
       </h1>
       <h4>to D<span>i</span>gg<span>i</span>e</h4>
       <!-- <p>{{ apx.user }}</p> -->

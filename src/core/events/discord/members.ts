@@ -1,41 +1,21 @@
 import type { Event } from "@tauri-apps/api/event";
 import { useAppStore } from "../../../stores/app";
-import type { DiscordUserPayload } from "./user";
+import type { IPresence } from "../../../types/types";
 
 interface PresencePayload {
-	user: DiscordUserPayload;
-	guild_id: string;
-	status: string;
-	game: {
-		name: string;
-		type: number;
-	};
-	activities: {
-		name: string;
-		type: number;
-	}[];
-	since: number;
-	afk: boolean;
-}
-
-interface MemberPayload {
-	user: DiscordUserPayload;
-	status: string;
-	activities: {
-		name: string;
-		type: number;
-	}[];
+	data: IPresence;
 }
 
 export function handleDiscordPresenceUpdate(ev: Event<unknown>): void {
 	const payload = ev.payload as PresencePayload;
+	const presence = payload.data;
 
-	const userId = payload.user.id;
-	const members = useAppStore().data.members as MemberPayload[];
+	const userId = presence.user.id;
+	const members = useAppStore().data.members;
 	const index = members.findIndex((user) => user.user.id === userId);
 
 	if (index !== -1) {
-		members[index].status = payload.status;
-		members[index].activities = payload.activities;
+		members[index].status = presence.status;
+		members[index].activities = presence.activities;
 	}
 }

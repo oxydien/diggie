@@ -30,8 +30,6 @@ textarea {
 
 <script>
 export default {
-  data() {
-  },
   props: {
     modelValue: { type: String, required: true, default: "" },
   },

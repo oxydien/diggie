@@ -101,7 +101,7 @@
       </div>
       <div class="hr"></div>
     </div>
-    <div class="base" v-if="apx.isLoggedIn">
+    <div class="base" v-if="apx.isLoggedIn && user">
       <div class="user">
         <div class="profile-picture-holder">
           <Avatar

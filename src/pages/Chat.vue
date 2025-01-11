@@ -191,8 +191,8 @@ import {
 	sendRawMessage,
 	sendRawReplyMessage,
 	sendRawEditMessage,
-} from "../core/discord/messages.js";
-import { loadChannel, loadFromChannelId } from "../core/discord/channels";
+} from "../core/discord/messages.ts";
+import { loadChannel, loadFromChannelId } from "../core/discord/channels.ts";
 import ReplyIcon from "../components/icons/ReplyIcon.vue";
 import SendIcon from "../components/icons/SendIcon.vue";
 import ShowLayoutIcon from "../components/icons/ShowLayoutIcon.vue";

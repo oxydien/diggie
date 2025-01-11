@@ -45,7 +45,7 @@ async fn app_load(app_handle: AppHandle) -> Result<(), String> {
             Ok(_) => (),
             Err(_) => println!("[bot::app_load()] Could not emit to windows"),
         }
-        match app_handle.emit("user-info", serde_json::to_string(&current_user).unwrap()) {
+        match app_handle.emit("user-info", json!({"current_user": current_user})) {
             Ok(_) => (),
             Err(_) => println!("[lib::app_load()] Could not emit data to windows"),
         }

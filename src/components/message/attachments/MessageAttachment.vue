@@ -43,8 +43,8 @@
 
 <template>
   <div class="attachment" @contextmenu.capture="attachmentContextMenu($event, file)">
-    <img :src="file.url" v-if="file.content_type.includes('image')" />
-    <div v-else-if="file.content_type.includes('video')">
+    <img :src="file.url" v-if="file.content_type?.includes('image')" />
+    <div v-else-if="file.content_type?.includes('video')">
       <video :src="file.url" controls v-if="isVideoAllowed" v-observe-visibility></video>
       <p v-else class="video-warn">Video not allowed: {{ file.url }}</p>
     </div>
@@ -135,6 +135,7 @@ export default {
       return `${(size / (1024 * 1024 * 1024)).toFixed(2)} GB`;
     },
     readableContentType() {
+      if (!this.file.content_type) return "";
       return this.file.content_type.split(";")[0];
     }
   },

@@ -1,4 +1,6 @@
-use serenity::all::{Channel, GuildChannel};
+use serenity::all::{
+    Channel, GuildChannel, GuildInfo, Member, Message, PartialGuild, PrivateChannel, ThreadsData
+};
 
 use crate::discord::channels::{
     create_channel, delete_channel, edit_channel, get_channel_info, get_forum_channels,
@@ -43,9 +45,9 @@ pub async fn discord_logout() -> Result<(), String> {
 
 // # MARK: Discord guilds
 #[tauri::command]
-pub async fn get_discord_guilds() -> Result<String, String> {
+pub async fn get_discord_guilds() -> Result<Vec<GuildInfo>, String> {
     match get_guilds().await {
-        Ok(data) => Ok(serde_json::to_string(&data).unwrap()),
+        Ok(data) => Ok(data),
         Err(e) => {
             NotificationBuilder::error(
                 "Discord guilds fetch error",
@@ -62,10 +64,10 @@ pub async fn get_discord_guilds() -> Result<String, String> {
 
 // # MARK: D.. guild info
 #[tauri::command]
-pub async fn get_discord_guild_info(guild_id: &str) -> Result<String, String> {
+pub async fn get_discord_guild_info(guild_id: &str) -> Result<PartialGuild, String> {
     let guild: u64 = guild_id.parse().unwrap();
     match get_guild_info(guild).await {
-        Ok(data) => Ok(serde_json::to_string(&data).unwrap()),
+        Ok(data) => Ok(data),
         Err(e) => {
             NotificationBuilder::error(
                 "Discord guild info fetch error",
@@ -82,10 +84,10 @@ pub async fn get_discord_guild_info(guild_id: &str) -> Result<String, String> {
 
 // # MARK: D guild members
 #[tauri::command]
-pub async fn get_discord_guild_members(guild_id: &str) -> Result<String, String> {
+pub async fn get_discord_guild_members(guild_id: &str) -> Result<Vec<Member>, String> {
     let guild: u64 = guild_id.parse().unwrap();
     match get_members(guild).await {
-        Ok(data) => Ok(serde_json::to_string(&data).unwrap()),
+        Ok(data) => Ok(data),
         Err(e) => {
             NotificationBuilder::error(
                 "Discord members fetch error",
@@ -105,12 +107,12 @@ pub async fn get_discord_guild_members(guild_id: &str) -> Result<String, String>
 pub async fn get_discord_guild_member_info(
     guild_id: &str,
     user_id: &str,
-) -> Result<String, String> {
+) -> Result<Member, String> {
     let guild: u64 = guild_id.parse().unwrap();
     let user: u64 = user_id.parse().unwrap();
 
     match get_member_info(guild, user).await {
-        Ok(data) => Ok(serde_json::to_string(&data).unwrap()),
+        Ok(data) => Ok(data),
         Err(e) => {
             NotificationBuilder::error(
                 "Discord member info fetch error",
@@ -127,10 +129,10 @@ pub async fn get_discord_guild_member_info(
 
 // # MARK: D.. channels
 #[tauri::command]
-pub async fn get_discord_channels(guild_id: &str) -> Result<String, String> {
+pub async fn get_discord_channels(guild_id: &str) -> Result<Vec<GuildChannel>, String> {
     let guild: u64 = guild_id.parse().unwrap();
     match get_channels(guild).await {
-        Ok(data) => Ok(serde_json::to_string(&data).unwrap()),
+        Ok(data) => Ok(data),
         Err(e) => {
             NotificationBuilder::error(
                 "Discord channels fetch error",
@@ -147,9 +149,9 @@ pub async fn get_discord_channels(guild_id: &str) -> Result<String, String> {
 
 // # MARK: Discord DMs
 #[tauri::command]
-pub async fn get_discord_direct_channels() -> Result<String, String> {
+pub async fn get_discord_direct_channels() -> Result<Vec<PrivateChannel>, String> {
     match get_direct_channels().await {
-        Ok(data) => Ok(serde_json::to_string(&data).unwrap()),
+        Ok(data) => Ok(data),
         Err(e) => {
             NotificationBuilder::error(
                 "Discord DM fetch error",
@@ -169,12 +171,12 @@ pub async fn get_discord_direct_channels() -> Result<String, String> {
 pub async fn discord_get_forum_channels(
     channel_id: &str,
     guild_id: &str,
-) -> Result<String, String> {
+) -> Result<ThreadsData, String> {
     let channel: u64 = channel_id.parse().unwrap();
     let guild: u64 = guild_id.parse().unwrap();
 
     match get_forum_channels(guild, channel).await {
-        Ok(data) => Ok(serde_json::to_string(&data).unwrap()),
+        Ok(data) => Ok(data),
         Err(e) => {
             NotificationBuilder::error(
                 "Discord forum channels fetch error",
@@ -191,10 +193,10 @@ pub async fn discord_get_forum_channels(
 
 // # MARK: D.. get channel
 #[tauri::command]
-pub async fn get_discord_channel_info(channel_id: &str) -> Result<String, String> {
+pub async fn get_discord_channel_info(channel_id: &str) -> Result<Channel, String> {
     let channel: u64 = channel_id.parse().unwrap();
     match get_channel_info(channel).await {
-        Ok(data) => Ok(serde_json::to_string(&data).unwrap()),
+        Ok(data) => Ok(data),
         Err(e) => {
             NotificationBuilder::error(
                 "Discord channel info fetch error",
@@ -439,10 +441,10 @@ pub async fn discord_delete_reaction(
 
 // # MARK: D get messages
 #[tauri::command]
-pub async fn get_discord_messages(channel_id: &str) -> Result<String, String> {
+pub async fn get_discord_messages(channel_id: &str) -> Result<Vec<Message>, String> {
     let channel: u64 = channel_id.parse().unwrap();
     match get_messages(channel).await {
-        Ok(data) => Ok(serde_json::to_string(&data).unwrap()),
+        Ok(data) => Ok(data),
         Err(err) => {
             NotificationBuilder::error(
                 "Discord messages fetch error",
@@ -481,10 +483,10 @@ pub async fn set_authorizations(data: &str) -> Result<String, String> {
 
 // # MARK: Get Client Settings
 #[tauri::command]
-pub async fn get_client_settings() -> Result<String, String> {
+pub async fn get_client_settings() -> Result<ClientSettings, String> {
     let settings = ClientSettings::load().await;
     match settings {
-        Ok(data) => Ok(serde_json::to_string(&data).unwrap()),
+        Ok(data) => Ok(data),
         Err(err) => {
             NotificationBuilder::error(
                 "Couldn't get client settings",

@@ -13,6 +13,7 @@ const routes = [
   { path: "/server/:serverId/edit/:channelId", component: () => import("./pages/EditChannel.vue") },
   { path: "/forum/:serverId/:channelId", component: () => import("./pages/Forum.vue") },
   { path: "/embed/:serverId/:channelId", component: () => import("./pages/EmbedEditor.vue") },
+  { path: "/debug", component: () => import("./pages/DebugPage.vue") },
   { path: "/settings", component: () => import("./pages/Settings.vue") },
 ];
 
@@ -34,5 +35,9 @@ document.addEventListener("keydown", (event) => {
   // Disable F5
   if (event.key === "F5") {
     event.preventDefault();
+  }
+  // Debug page
+  if (event.ctrlKey && event.key === "i") {
+    appRouter.push("/debug");
   }
 });

@@ -209,8 +209,8 @@
 </template>
 
 <script>
-import { getMessages } from "../core/discord/messages";
-import { useAppStore } from "../stores/app.js";
+import { getMessages } from "../core/discord/messages.ts";
+import { useAppStore } from "../stores/app.ts";
 import ArchiveIcon from "../components/icons/ArchiveIcon.vue";
 import LoadingIcon from "../components/icons/LoadingIcon.vue";
 import MessageIcon from "../components/icons/MessageIcon.vue";

@@ -1,48 +1,36 @@
 import type { Event } from "@tauri-apps/api/event";
 import { useAppStore } from "../../../stores/app";
-import type { ReactionPayload } from "./reactions";
+import type { IMessage } from "../../../types/types";
 
 // For now
 export interface MessagePayload {
-	id: string;
-	guild_id: string;
-	channel_id: string;
-	author_id: string;
-	content: string;
-	timestamp: string;
-	attachments: object[];
-	embeds: object[];
-	reactions: ReactionPayload[];
-	mentions: string[];
-	type: number;
-	components: object[];
-	edited_timestamp?: string;
-
-	// diggie only
-	deleted?: boolean;
+	message: IMessage;
 }
 
 interface MessageUpdatePayload {
-	event: MessagePayload;
-	old?: MessagePayload;
-	new?: MessagePayload;
+	event: IMessage;
+	old?: IMessage;
+	new?: IMessage;
 }
 
 export function handleDiscordMessage(ev: Event<unknown>): void {
 	const payload = ev.payload as MessagePayload;
-	if (payload.channel_id === useAppStore().data.currentChannelId) {
-		(useAppStore().data.messages as MessagePayload[]).push(payload);
+	const message = payload.message;
+
+	if (message.channel_id === useAppStore().data.currentChannelId) {
+		useAppStore().data.messages.push(message);
 	} else {
-		(useAppStore().data.unreadChannels as string[]).push(payload.channel_id);
+		(useAppStore().data.unreadChannels as string[]).push(message.channel_id);
 	}
-	useAppStore().cache.cachedChannels[payload.channel_id].push(payload);
+	useAppStore().cache.cachedMessages[message.channel_id].push(message);
 }
 
 export function handleDiscordMessageUpdate(ev: Event<unknown>): void {
 	const payload = ev.payload as MessageUpdatePayload;
+
 	if (payload.event.channel_id === useAppStore().data.currentChannelId) {
 		const messageId = payload.event.id;
-		const messages = useAppStore().data.messages as MessagePayload[];
+		const messages = useAppStore().data.messages;
 		const index = messages.findIndex((message) => message.id === messageId);
 
 		if (index !== -1) {
@@ -57,12 +45,14 @@ export function handleDiscordMessageUpdate(ev: Event<unknown>): void {
 
 export function handleDiscordMessageDelete(ev: Event<unknown>): void {
 	const payload = ev.payload as MessagePayload;
+	const message = payload.message;
+
 	const messageId = payload["message-id"];
-	const index = (useAppStore().data.messages as MessagePayload[]).findIndex(
+	const index = useAppStore().data.messages.findIndex(
 		(message) => message.id === messageId,
 	);
 
 	if (index !== -1) {
-		(useAppStore().data.messages as MessagePayload[])[index].deleted = true;
+		useAppStore().data.messages[index].deleted = true;
 	}
 }

@@ -114,14 +114,14 @@
     </div>
     <div class="channel-navigation-wrapper" v-if="apx.layout.showChannels">
       <div class="guild-header-wrapper">
-        <GuildHeader v-if="!apx.layout.isInDirrectMessages" />
+        <GuildHeader v-if="!apx.layout.isInDirectMessages" />
       </div>
       <div class="channel-navigation">
-        <ChannelNavigation v-if="!apx.layout.isInDirrectMessages" :key="apx.data.channels.length" />
+        <ChannelNavigation v-if="!apx.layout.isInDirectMessages" :key="apx.data.channels.length" />
         <DirectMessagesNavigation v-else />
       </div>
       <div class="user-info-wrapper">
-        <UserInfo :key="apx.user" />
+        <UserInfo :key="apx.user ? apx.user.id : ''" />
       </div>
     </div>
   </div>

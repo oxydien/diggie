@@ -1,22 +1,19 @@
 import type { Event } from "@tauri-apps/api/event";
 import { useAppStore } from "../../../stores/app";
-import type { MessagePayload } from "./messages";
+import type { IReaction } from "../../../types/types";
 
-export interface ReactionPayload {
-	message_id: string;
-	channel_id: string;
-	user_id: string;
-	count: number;
-	emoji: { name: string; id: string } | string;
+interface ReactionPayload {
+	reaction: IReaction;
 }
 
 export function handleDiscordReactionAdd(ev: Event<unknown>): void {
 	const payload = ev.payload as ReactionPayload;
+	const reaction = payload.reaction;
 
 	// If the message is in the current channel
-	if (payload.channel_id === useAppStore().data.currentChannelId) {
-		const messageId = payload.message_id;
-		const messages = useAppStore().data.messages as MessagePayload[];
+	if (reaction.channel_id === useAppStore().data.currentChannelId) {
+		const messageId = reaction.message_id;
+		const messages = useAppStore().data.messages;
 
 		// Find the message containing the reaction
 		const index = messages.findIndex((message) => message.id === messageId);
@@ -24,17 +21,16 @@ export function handleDiscordReactionAdd(ev: Event<unknown>): void {
 		if (index !== -1) {
 			// Check if the reaction already exists
 			const existingReactionIndex = messages[index].reactions.findIndex(
-				(reaction) =>
-					reaction.count > 0 &&
-					((typeof reaction.emoji === "object" &&
-						typeof payload.emoji === "object" &&
-						reaction.emoji.name === payload.emoji.name) ||
-						reaction.emoji === payload.emoji),
+				(existingReaction) =>
+					existingReaction.count > 0 &&
+					(existingReaction.emoji.name === reaction.emoji.name ||
+						(existingReaction.emoji.id &&
+							existingReaction.emoji.id === reaction.emoji.id)),
 			);
 
 			// If the reaction doesn't exist, add it
 			if (existingReactionIndex === -1) {
-				messages[index].reactions.push({ ...payload, count: 1 });
+				messages[index].reactions.push({ ...reaction, count: 1 });
 			} else {
 				// If the reaction exists, increment the counter
 				messages[index].reactions[existingReactionIndex].count += 1;
@@ -45,11 +41,12 @@ export function handleDiscordReactionAdd(ev: Event<unknown>): void {
 
 export function handleDiscordReactionRemove(ev: Event<unknown>): void {
 	const payload = ev.payload as ReactionPayload;
+	const reaction = payload.reaction;
 
 	// If the message is in the current channel
-	if (payload.channel_id === useAppStore().data.currentChannelId) {
-		const messageId = payload.message_id;
-		const messages = useAppStore().data.messages as MessagePayload[];
+	if (reaction.channel_id === useAppStore().data.currentChannelId) {
+		const messageId = reaction.message_id;
+		const messages = useAppStore().data.messages;
 
 		// Find the message containing the reaction
 		const index = messages.findIndex((message) => message.id === messageId);
@@ -57,12 +54,11 @@ export function handleDiscordReactionRemove(ev: Event<unknown>): void {
 		if (index !== -1) {
 			// Check if the reaction already exists
 			const existingReactionIndex = messages[index].reactions.findIndex(
-				(reaction) =>
-					reaction.count > 0 &&
-					((typeof reaction.emoji === "object" &&
-						typeof payload.emoji === "object" &&
-						reaction.emoji.name === payload.emoji.name) ||
-						reaction.emoji === payload.emoji),
+				(existingReaction) =>
+					existingReaction.count > 0 &&
+					(existingReaction.emoji.name === reaction.emoji.name ||
+						(existingReaction.emoji.id &&
+							existingReaction.emoji.id === reaction.emoji.id)),
 			);
 
 			if (existingReactionIndex !== -1) {

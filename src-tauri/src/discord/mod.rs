@@ -25,6 +25,16 @@ pub mod members;
 pub mod messages;
 pub mod reactions;
 
+macro_rules! emit_to_app {
+    ($name:expr, $($key:expr => $value:expr),+) => {
+        if let Some(app) = &*MAIN_APP.lock().await {
+            if let Err(_) = app.emit(($name), json!({ $($key: $value),+ })) {
+                eprintln!("[bot::event-{}] Could not emit to windows", stringify!($name));
+            }
+        }
+    };
+}
+
 lazy_static! {
     pub static ref DISCORD_CONTEXT: Arc<Mutex<Option<Context>>> = Arc::new(Mutex::new(None));
     pub static ref SHOULD_SAVE_NEXT_LOGIN: Arc<Mutex<bool>> = Arc::new(Mutex::new(false));
@@ -35,57 +45,21 @@ struct Handler;
 #[async_trait]
 impl EventHandler for Handler {
     async fn message(&self, _ctx: Context, msg: Message) {
-        let app_guard = MAIN_APP.lock().await;
-        if let Some(app) = &*app_guard {
-            match app.emit("discord-message", msg) {
-                Ok(_) => (),
-                Err(_) => println!("[bot::message()] Could not emit to windows"),
-            }
-        }
+        emit_to_app!("discord-message", "message" => msg);
     }
 
     async fn reaction_add(&self, _ctx: Context, reaction_add: Reaction) {
-        let app_guard = MAIN_APP.lock().await;
-        if let Some(app) = &*app_guard {
-            match app.emit("discord-reaction-add", reaction_add) {
-                Ok(_) => (),
-                Err(_) => println!("[bot::reaction_add()] Could not emit to windows"),
-            }
-        }
+        emit_to_app!("discord-reaction-add", "reaction" => reaction_add);
     }
 
     async fn reaction_remove(&self, _ctx: Context, reaction_remove: Reaction) {
-        let app_guard = MAIN_APP.lock().await;
-        if let Some(app) = &*app_guard {
-            match app.emit("discord-reaction-remove", reaction_remove) {
-                Ok(_) => (),
-                Err(_) => println!("[bot::reaction_remove()] Could not emit to windows"),
-            }
-        }
+        emit_to_app!("discord-reaction-remove", "reaction" => reaction_remove);
     }
     async fn channel_update(&self, _ctx: Context, old: Option<GuildChannel>, new: GuildChannel) {
-        let app_guard = MAIN_APP.lock().await;
-        if let Some(app) = &*app_guard {
-            match app.emit(
-                "discord-channel-update",
-                json!({
-                    "old": serde_json::to_value(old).unwrap_or_default(),
-                    "new": serde_json::to_value(new).unwrap_or_default(),
-                }),
-            ) {
-                Ok(_) => (),
-                Err(_) => println!("[bot::channel_update()] Could not emit to windows"),
-            }
-        }
+        emit_to_app!("discord-channel-update", "old" => old, "new" => new);
     }
     async fn channel_create(&self, _ctx: Context, channel: GuildChannel) {
-        let app_guard = MAIN_APP.lock().await;
-        if let Some(app) = &*app_guard {
-            match app.emit("discord-channel-create", channel) {
-                Ok(_) => (),
-                Err(_) => println!("[bot::channel_create()] Could not emit to windows"),
-            }
-        }
+        emit_to_app!("discord-channel-create", "channel" => channel);
     }
     async fn channel_delete(
         &self,
@@ -93,51 +67,36 @@ impl EventHandler for Handler {
         channel: GuildChannel,
         _messages: Option<Vec<Message>>,
     ) {
-        let app_guard = MAIN_APP.lock().await;
-        if let Some(app) = &*app_guard {
-            match app.emit("discord-channel-delete", channel) {
-                Ok(_) => (),
-                Err(_) => println!("[bot::channel_delete()] Could not emit to windows"),
-            }
-        }
+        emit_to_app!("discord-channel-delete", "channel" => channel);
     }
     async fn category_create(&self, _ctx: Context, category: GuildChannel) {
-        let app_guard = MAIN_APP.lock().await;
-        if let Some(app) = &*app_guard {
-            match app.emit("discord-channel-create", category) {
-                Ok(_) => (),
-                Err(_) => println!("[bot::category_create()] Could not emit to windows"),
-            }
-        }
+        emit_to_app!("discord-channel-create", "channel" => category);
     }
     async fn category_delete(&self, _ctx: Context, category: GuildChannel) {
-        let app_guard = MAIN_APP.lock().await;
-        if let Some(app) = &*app_guard {
-            match app.emit("discord-channel-delete", category) {
-                Ok(_) => (),
-                Err(_) => println!("[bot::category_delete()] Could not emit to windows"),
-            }
-        }
+        emit_to_app!("discord-channel-delete", "channel" => category);
     }
 
     async fn ready(&self, ctx: Context, ready: Ready) {
         println!("{} is connected!", ready.user.name);
-        let app_guard = MAIN_APP.lock().await;
 
-        // Save and encrypt authorizations
+        // Saving authorizations
         let token = ctx.http.token().to_string();
         match crate::settings::auth_saver::get_all_authorizations().await {
             Ok(mut auths) => {
+                // Check if the bot already exists in the list of saved authorizations
                 let bot_exists = auths
                     .iter_mut()
                     .find(|auth| auth.account.id == ready.user.id.to_string());
                 if let Some(existing_bot) = bot_exists {
                     println!("Updating already saved account!");
+                    // Update the last touched time
                     existing_bot.last_touched = time::SystemTime::now();
                 } else {
+                    // If it doesn't exist, check if the user wants to save the authorization
                     let should_save = *SHOULD_SAVE_NEXT_LOGIN.lock().await;
                     if should_save {
                         println!("Saving new account!");
+                        // Add a new authorization to the list
                         auths.push(SavedAuth {
                             token,
                             last_touched: time::SystemTime::now(),
@@ -147,9 +106,11 @@ impl EventHandler for Handler {
                                 avatar: ready.user.avatar.map(|hash| hash.to_string()),
                             },
                         });
+                        // Reset the flag
                         *SHOULD_SAVE_NEXT_LOGIN.lock().await = false;
                     }
                 }
+                // Save the new list of authorizations
                 if let Err(err) = set_all_authorizations(auths).await {
                     eprintln!(
                         "[discord::mod::ready] Couldn't save authorizations: {}",
@@ -169,26 +130,12 @@ impl EventHandler for Handler {
         }
         *DISCORD_CONTEXT.lock().await = Some(ctx);
 
-        // Send to discord client
-        if let Some(app) = &*app_guard {
-            match app.emit("discord-status", json!({"loggedIn": true})) {
-                Ok(_) => (),
-                Err(_) => println!("[bot::ready()] Could not emit to windows"),
-            }
-            match app.emit("user-info", serde_json::to_string(&ready.user).unwrap()) {
-                Ok(_) => (),
-                Err(_) => println!("[bot::ready()] Could not emit data to windows"),
-            }
-        }
+        // Send signal to discord client
+        emit_to_app!("discord-status", "loggedIn" => true);
+        emit_to_app!("user-info", "current_user" => &ready.user);
     }
     async fn presence_update(&self, _ctx: Context, new_data: Presence) {
-        let app_guard = MAIN_APP.lock().await;
-        if let Some(app) = &*app_guard {
-            match app.emit("discord-presence-update", new_data) {
-                Ok(_) => (),
-                Err(_) => println!("[bot::presence_update()] Could not emit to windows"),
-            }
-        }
+        emit_to_app!("discord-presence-update", "data" => new_data);
     }
     async fn message_update(
         &self,
@@ -197,20 +144,7 @@ impl EventHandler for Handler {
         new: Option<Message>,
         event: MessageUpdateEvent,
     ) {
-        let app_guard = MAIN_APP.lock().await;
-        if let Some(app) = &*app_guard {
-            match app.emit(
-                "discord-message-update",
-                json!({
-                    "old": old_if_available,
-                    "new": new,
-                    "event": event
-                }),
-            ) {
-                Ok(_) => (),
-                Err(_) => println!("[bot::presence_update()] Could not emit to windows"),
-            }
-        }
+        emit_to_app!("discord-message-update", "old" => old_if_available, "new" => new, "event" => event);
     }
     async fn message_delete(
         &self,
@@ -219,19 +153,6 @@ impl EventHandler for Handler {
         deleted_message_id: MessageId,
         guild_id: Option<GuildId>,
     ) {
-        let app_guard = MAIN_APP.lock().await;
-        if let Some(app) = &*app_guard {
-            match app.emit(
-                "discord-message-delete",
-                json!({
-                    "channel-id": channel_id,
-                    "message-id": deleted_message_id,
-                    "guild-id": guild_id
-                }),
-            ) {
-                Ok(_) => (),
-                Err(_) => println!("[bot::presence_update()] Could not emit to windows"),
-            }
-        }
+        emit_to_app!("discord-message-delete", "channel_id" => channel_id, "message_id" => deleted_message_id, "guild_id" => guild_id);
     }
 }

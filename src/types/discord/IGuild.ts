@@ -1,0 +1,57 @@
+import type IChannel from "./IChannel";
+import type IMember from "./IMember";
+import type IPresence from "./IPresence";
+import type { IEmoji } from "./IReaction";
+import type IRole from "./IRole";
+
+export default interface IGuild {
+  id: string;
+  name: string;
+  icon?: string;
+  icon_hash?: string;
+  splash?: string;
+  discovery_splash?: string;
+  owner_id: string;
+  afk_metadata?: unknown;
+  widget_enabled?: boolean;
+  widget_channel_id?: string;
+  verification_level: number;
+  default_message_notifications: number;
+  explicit_content_filter: number;
+  roles: IRole[];
+  emojis: IEmoji[];
+  features: string[];
+  mfa_level: number;
+  application_id?: string;
+  system_channel_id?: string;
+  system_channel_flags: number;
+  rules_channel_id?: string;
+  max_presences?: number;
+  max_members?: number;
+  vaniity_url_code?: string;
+  description?: string;
+  banner?: string;
+  premium_tier: number;
+  premium_subscription_count?: number;
+  preferred_locale: string;
+  public_updates_channel_id?: string;
+  max_video_channel_users?: number;
+  max_stage_channel_users?: number;
+  approximate_member_count?: number;
+  approximate_presence_count?: number;
+  welcome_screen?: unknown;
+  nsfw_level: number;
+  stickers: unknown[]; // TODO: ISticker
+  premium_progress_bar_enabled: boolean;
+  joined_at: string;
+  large: boolean;
+  unavailable: boolean;
+  member_count: number;
+  voice_states: unknown[];
+  members: IMember[];
+  channels?: IChannel[];
+  threads?: IChannel[];
+  presences: {[id: string]: IPresence}[];
+  stage_instances: unknown[];
+  sheduled_events: unknown[];
+}

@@ -653,7 +653,7 @@ import Message from "../components/message/Message.vue";
 import Button from "../components/base/Button.vue";
 import Input from "../components/base/Input.vue";
 import Textarea from "../components/base/Textarea.vue";
-import { useAppStore } from "../stores/app.js";
+import { useAppStore } from "../stores/app.ts";
 export default {
   components: { Message, DeleteIcon, ArrowIcon, Button, Input, Textarea },
   data() {
