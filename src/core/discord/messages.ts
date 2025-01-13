@@ -29,7 +29,7 @@ export async function getMessages(channelId: string) {
 			const messages = data as IMessage[];
 
 			useAppStore().data.messages = messages;
-			useAppStore().cache.cachedMessages[channelId] = messages;
+			useAppStore().cache.cachedMessages[channelId] = [...messages];
 			useAppStore().data.channelHistory.push(channelId);
 
 			console.log(...logHead, "Received messages", messages);
@@ -249,6 +249,6 @@ export async function tryRemoveReaction(channelId, messageId, unicode) {
 			console.error(...logHead, "Failed to remove reaction", err);
 			error = err;
 		});
-	
+
 	return error;
 }

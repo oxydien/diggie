@@ -99,14 +99,14 @@
 <script>
 import twemoji from "twemoji";
 import Input from "./base/Input.vue";
-import { useAppStore } from "../stores/app";
+import {Twemojis} from "../stores/static";
 
 export default {
   components: { Input },
   data() {
     return {
       searchQuery: "",
-      emojis: useAppStore().utils.emojiData,
+      emojis: Twemojis.value,
     };
   },
   emits: ["picked"],
@@ -134,8 +134,7 @@ export default {
         const newEmoji = twemoji.parse(emoji.unicode, {
           base: "https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/",
         });
-        const htmlElement = newEmoji.match(/<[^>]+>/g)?.[0] || "";
-        emoji.html = htmlElement;
+        emoji.html = newEmoji.match(/<[^>]+>/g)?.[0] || "";
         if (emoji.html) data.push(emoji);
       }
       data = data.sort((a, b) => {

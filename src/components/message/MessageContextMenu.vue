@@ -10,6 +10,10 @@
   border-radius: var(--radius-md);
   z-index: 957;
 
+  &.reversed {
+    flex-flow: column-reverse nowrap;
+  }
+
   .favorite-emojis {
     display: flex;
     flex-flow: row;
@@ -56,7 +60,7 @@
 </style>
 
 <template>
-  <div class="message-context-wrapper">
+  <div class="message-context-wrapper" :class="{ 'reversed': reversed }">
     <div class="favorite-emojis" v-if="favoriteEmojis?.length">
       <Button class="emoji" v-for="emoji in favoriteEmojis" @click="addReaction(emoji)" :key="emoji">
         <span>{{ emoji }}</span>
@@ -165,6 +169,11 @@ export default {
       type: Object,
       required: true,
     },
+    reversed: {
+      type: Boolean,
+      required: false,
+      default: false,
+    }
   },
   emits: ["close"],
   mounted() {

@@ -233,6 +233,9 @@ export default {
 		"apx.data.messages"() {
 			this.scrollBottom();
 		},
+		"apx.data.messages.length"() {
+			this.scrollBottom();
+		},
 		"apx.data.currentChannelId"(newVal) {
 			console.log("Loading new channel", newVal);
 			this.resetScrollLoop();
@@ -263,6 +266,8 @@ export default {
 	},
 	mounted() {
 		this.resetScrollLoop();
+
+		// Remove the current channel from the unread list
 		const index = this.apx.data.unreadChannels.findIndex(
 			(el) => el === this.apx.data.currentChannelId,
 		);

@@ -1,4 +1,3 @@
-// Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 pub mod client_commands;
 pub mod discord;
 pub mod notifications;
@@ -41,19 +40,10 @@ async fn app_load(app_handle: AppHandle) -> Result<(), String> {
     let context_guard: tokio::sync::MutexGuard<'_, Option<serenity::prelude::Context>> = DISCORD_CONTEXT.lock().await;
     if let Some(ctx) = context_guard.as_ref() {
         let current_user = ctx.http.get_current_user().await.unwrap();
-        match app_handle.emit("discord-status", json!({"loggedIn": true})) {
-            Ok(_) => (),
-            Err(_) => println!("[bot::app_load()] Could not emit to windows"),
-        }
-        match app_handle.emit("user-info", json!({"current_user": current_user})) {
-            Ok(_) => (),
-            Err(_) => println!("[lib::app_load()] Could not emit data to windows"),
-        }
+        emit_to_app!("discord-status", "loggedIn" => true);
+        emit_to_app!("user-info", "current_user" => current_user);
     } else if let Ok(auth_data) = get_all_authorizations().await {
-        match app_handle.emit("saved-authorizations", &auth_data) {
-            Ok(_) => (),
-            Err(_) => println!("[lib::app_load()] Could not emit data to windows"),
-        }
+        emit_to_app!("saved-authorizations", "authorizations" => auth_data);
     }
     Ok(())
 }

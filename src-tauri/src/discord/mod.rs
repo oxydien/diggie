@@ -13,9 +13,9 @@ use serenity::{
 };
 
 use crate::{
+    emit_to_app,
     notifications::builder::NotificationBuilder,
     settings::auth_saver::{set_all_authorizations, Account, SavedAuth},
-    MAIN_APP,
 };
 
 pub mod channels;
@@ -24,16 +24,6 @@ pub mod login;
 pub mod members;
 pub mod messages;
 pub mod reactions;
-
-macro_rules! emit_to_app {
-    ($name:expr, $($key:expr => $value:expr),+) => {
-        if let Some(app) = &*MAIN_APP.lock().await {
-            if let Err(_) = app.emit(($name), json!({ $($key: $value),+ })) {
-                eprintln!("[bot::event-{}] Could not emit to windows", stringify!($name));
-            }
-        }
-    };
-}
 
 lazy_static! {
     pub static ref DISCORD_CONTEXT: Arc<Mutex<Option<Context>>> = Arc::new(Mutex::new(None));
@@ -44,22 +34,16 @@ struct Handler;
 
 #[async_trait]
 impl EventHandler for Handler {
-    async fn message(&self, _ctx: Context, msg: Message) {
-        emit_to_app!("discord-message", "message" => msg);
-    }
-
-    async fn reaction_add(&self, _ctx: Context, reaction_add: Reaction) {
-        emit_to_app!("discord-reaction-add", "reaction" => reaction_add);
-    }
-
-    async fn reaction_remove(&self, _ctx: Context, reaction_remove: Reaction) {
-        emit_to_app!("discord-reaction-remove", "reaction" => reaction_remove);
-    }
-    async fn channel_update(&self, _ctx: Context, old: Option<GuildChannel>, new: GuildChannel) {
-        emit_to_app!("discord-channel-update", "old" => old, "new" => new);
-    }
     async fn channel_create(&self, _ctx: Context, channel: GuildChannel) {
         emit_to_app!("discord-channel-create", "channel" => channel);
+    }
+
+    async fn category_create(&self, _ctx: Context, category: GuildChannel) {
+        emit_to_app!("discord-channel-create", "channel" => category);
+    }
+
+    async fn category_delete(&self, _ctx: Context, category: GuildChannel) {
+        emit_to_app!("discord-channel-delete", "channel" => category);
     }
     async fn channel_delete(
         &self,
@@ -69,13 +53,40 @@ impl EventHandler for Handler {
     ) {
         emit_to_app!("discord-channel-delete", "channel" => channel);
     }
-    async fn category_create(&self, _ctx: Context, category: GuildChannel) {
-        emit_to_app!("discord-channel-create", "channel" => category);
+    async fn channel_update(&self, _ctx: Context, old: Option<GuildChannel>, new: GuildChannel) {
+        emit_to_app!("discord-channel-update", "old" => old, "new" => new);
     }
-    async fn category_delete(&self, _ctx: Context, category: GuildChannel) {
-        emit_to_app!("discord-channel-delete", "channel" => category);
+    async fn message(&self, _ctx: Context, msg: Message) {
+        emit_to_app!("discord-message", "message" => msg);
+    }
+    async fn message_delete(
+        &self,
+        _ctx: Context,
+        channel_id: ChannelId,
+        deleted_message_id: MessageId,
+        guild_id: Option<GuildId>,
+    ) {
+        emit_to_app!("discord-message-delete", "channel_id" => channel_id, "message_id" => deleted_message_id, "guild_id" => guild_id);
+    }
+    async fn message_update(
+        &self,
+        _ctx: Context,
+        old_if_available: Option<Message>,
+        new: Option<Message>,
+        event: MessageUpdateEvent,
+    ) {
+        emit_to_app!("discord-message-update", "old" => old_if_available, "new" => new, "event" => event);
     }
 
+    async fn reaction_add(&self, _ctx: Context, reaction_add: Reaction) {
+        emit_to_app!("discord-reaction-add", "reaction" => reaction_add);
+    }
+    async fn reaction_remove(&self, _ctx: Context, reaction_remove: Reaction) {
+        emit_to_app!("discord-reaction-remove", "reaction" => reaction_remove);
+    }
+    async fn presence_update(&self, _ctx: Context, new_data: Presence) {
+        emit_to_app!("discord-presence-update", "data" => new_data);
+    }
     async fn ready(&self, ctx: Context, ready: Ready) {
         println!("{} is connected!", ready.user.name);
 
@@ -133,26 +144,5 @@ impl EventHandler for Handler {
         // Send signal to discord client
         emit_to_app!("discord-status", "loggedIn" => true);
         emit_to_app!("user-info", "current_user" => &ready.user);
-    }
-    async fn presence_update(&self, _ctx: Context, new_data: Presence) {
-        emit_to_app!("discord-presence-update", "data" => new_data);
-    }
-    async fn message_update(
-        &self,
-        _ctx: Context,
-        old_if_available: Option<Message>,
-        new: Option<Message>,
-        event: MessageUpdateEvent,
-    ) {
-        emit_to_app!("discord-message-update", "old" => old_if_available, "new" => new, "event" => event);
-    }
-    async fn message_delete(
-        &self,
-        _ctx: Context,
-        channel_id: ChannelId,
-        deleted_message_id: MessageId,
-        guild_id: Option<GuildId>,
-    ) {
-        emit_to_app!("discord-message-delete", "channel_id" => channel_id, "message_id" => deleted_message_id, "guild_id" => guild_id);
     }
 }

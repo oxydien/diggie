@@ -128,7 +128,8 @@
         <MessageAttachment v-for="file in message.attachments" :file="file" />
       </div>
       <div class="message-reactions">
-        <Button class="reaction" :class="{ reacted: reaction.me || reaction.user_id === apx.user?.id }" v-for="reaction in message.reactions" @click="toggleReaction(reaction)">
+        <Button class="reaction" :class="{ reacted: reaction.me || reaction.user_id === apx.user?.id }"
+          v-for="reaction in message.reactions" @click="toggleReaction(reaction)">
           <strong v-html="translateEmoji(reaction.emoji.name)"> </strong>
           <span> {{ reaction.count }}</span>
         </Button>
@@ -201,13 +202,25 @@ export default {
         const { default: MessageContextMenu } = await import(
           "./MessageContextMenu.vue"
         );
+
+        const halfHeight = window.innerHeight / 2;
+        const halfWidth = window.innerWidth / 2;
+
         const contextMenu = createApp(MessageContextMenu, {
           message: message,
+          reversed: event.clientY >= halfHeight,
         }).mount(document.createElement("div"));
 
         // Position the context menu
-        contextMenu.$el.style.right = "var(--gap-md)";
-        contextMenu.$el.style.top = "var(--gap-md)";
+        const bounding = this.$el.getBoundingClientRect();
+        const x = event.clientX - bounding.left;
+        const y = event.clientY - bounding.top;
+
+        contextMenu.$el.style.top = event.clientY < halfHeight ? `${y}px` : 'auto';
+        contextMenu.$el.style.bottom = event.clientY < halfHeight ? 'auto' : `${bounding.height - y}px`;
+
+        contextMenu.$el.style.left = event.clientX < halfWidth ? `${x}px` : 'auto';
+        contextMenu.$el.style.right = event.clientX < halfWidth ? 'auto' : `${bounding.width - x}px`;
 
         // Append the context menu to the body
         this.$el.appendChild(contextMenu.$el);

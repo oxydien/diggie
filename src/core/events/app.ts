@@ -1,10 +1,15 @@
 import { useAppStore } from "../../stores/app";
 import type { Event } from "@tauri-apps/api/event";
 import { handleNotification } from "../notifications/notificationHandler";
+import {ISavedAuth} from "../../types/ISavedAuth";
+
+interface SavedAuthorizationPayload {
+	authorizations: ISavedAuth[];
+}
 
 export function handleAppSavedAuthorizations(ev: Event<unknown>): void {
-	// biome-ignore lint/suspicious/noExplicitAny: app-store in js
-	useAppStore().data.savedAuthorizations = ev.payload as any;
+	const payload = ev.payload as SavedAuthorizationPayload;
+	useAppStore().data.savedAuthorizations = payload.authorizations;
 }
 
 export function handleAppNotification(ev: Event<unknown>): void {

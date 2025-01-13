@@ -210,8 +210,9 @@ export async function loadChannel(channel: IChannel) {
 
 			useAppStore().data.currentChannel = channel;
 			useAppStore().data.currentChannelId = channel.id;
-			useAppStore().data.messages =
-				useAppStore().cache.cachedMessages[channel.id] || [];
+			useAppStore().data.messages = JSON.parse(
+				JSON.stringify(useAppStore().cache.cachedMessages[channel.id] || []),
+			);
 
 			appRouter.push(
 				`/server/${useAppStore().data.currentServerId}/${channel.id}`,

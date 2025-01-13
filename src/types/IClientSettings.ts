@@ -1,3 +1,6 @@
 export default interface IClientSettings {
-	[key: string]: string; // Will contain all the client settings
+	render_videos?: boolean;
+	favorite_emojis?: string;
+	// All other can be found in /src-tauri/settings/client_settings.rs
+	[key: string]: string;
 }

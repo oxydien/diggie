@@ -7,6 +7,7 @@ import type {
 	IGuild,
 	IClientSettings,
 } from "../types/types";
+import type { ISavedAuth } from "../types/ISavedAuth";
 
 export const useAppStore = defineStore("app", {
 	state: () => {
@@ -82,7 +83,7 @@ export const useAppStore = defineStore("app", {
 				},
 
 				// Saved authorizations, used for logging in
-				savedAuthorizations: [],
+				savedAuthorizations: [] as ISavedAuth[],
 			},
 
 			// Layout options, used for showing/hiding elements
@@ -95,16 +96,6 @@ export const useAppStore = defineStore("app", {
 				channelEditMode: false,
 			},
 			utils: {
-				// Markdown parser instance
-				markdown: null,
-				// Twemoji emoji data
-				emojiData: [] as {
-					label: string;
-					group: string;
-					hexcode: string;
-					unicode: string;
-					url: string;
-				}[],
 				// Client settings, loaded on startup
 				clientSettings: null as IClientSettings | null,
 			},

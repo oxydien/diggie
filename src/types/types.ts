@@ -25,6 +25,8 @@ import { IEmoji, IReaction } from "./discord/IReaction";
 import IGuild from "./discord/IGuild";
 import IRole from "./discord/IRole";
 import IClientSettings from "./IClientSettings";
+import { ISavedAuth, IAccount } from "./ISavedAuth";
+import { ITwemoji } from "./ITwemoji";
 
 export {
 	IClientSettings,
@@ -51,4 +53,7 @@ export {
 	IPollAnswer,
 	IPollAnswerCount,
 	IPollResults,
+	ISavedAuth,
+	IAccount,
+	ITwemoji,
 };
